@@ -1,6 +1,6 @@
 {
-    "name": "hive",
-    "version": "0.1.2",
+    "name": "@lespantsfancy/hive",
+    "version": "0.1.3",
     "description": "",
     "main": "lib/index.js",
     "directories": {
