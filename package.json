@@ -10,7 +10,7 @@
         "prepublish": "babel --plugins transform-object-rest-spread,transform-class-properties src --out-dir lib",
         "deploy": "yarn version --patch && yarn publish --access=public",
         "start": "node esm-index.js",
-        "server": "node esm-server.js"
+        "test": "node esm-test.js"
     },
     "repository": {
         "type": "git",

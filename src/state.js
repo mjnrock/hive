@@ -11,4 +11,18 @@ StateNode.addReducer("cats", (state, msg) => {
     };
 })
 
+export function spawnStateNode(state, ...reducers) {
+    const stateNode = new Node(state);
+
+    for(let reducer of reducers) {
+        if(Array.isArray(reducer)) {
+            stateNode.addReducer(...reducer);
+        } else if(typeof reducer === "function") {
+            state.addReducer(reducer);
+        }
+    }
+
+    return stateNode;
+}
+
 export default StateNode;
