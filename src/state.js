@@ -1,7 +1,7 @@
-import Node from "./node/package";
+import Node from "./Node";
 
 //* Use this file as a "file variable"
-const StateNode = new Node.Node({
+const StateNode = new Node({
     cats: 2
 });
 StateNode.addReducer("cats", (state, msg) => {

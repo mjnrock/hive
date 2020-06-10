@@ -1,11 +1,10 @@
 /* eslint-disable */
 import { useContext, useState, useEffect } from "react";
-import { Context } from "./../App";
-import Node from "./node/Node";
+import Node from "./Node";
 
 //* Only real requirement is that the Context.Provider contains a kvp of { node: <Node> }
 export function useNodeContext(context) {
-    const { node: ctxNode } = useContext(context || Context);
+    const { node: ctxNode } = useContext(context);
     const [ state, setState ] = useState({
         node: ctxNode,
         state: ctxNode.state
