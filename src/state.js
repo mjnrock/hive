@@ -18,7 +18,7 @@ export function spawnStateNode(state, ...reducers) {
         if(Array.isArray(reducer)) {
             stateNode.addReducer(...reducer);
         } else if(typeof reducer === "function") {
-            state.addReducer(reducer);
+            stateNode.addReducer(reducer);
         }
     }
 

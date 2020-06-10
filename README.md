@@ -1,9 +1,6 @@
 ### Example Usage
 ```
-import Hive from "@lespantsfancy/hive";
-import { useNodeContext } from "@lespantsfancy/hive/lib/hooks";
-// The StateNode default export is a demo state, use { spawnStateNode } to customize
-import StateNode from "@lespantsfancy/hive/lib/state";
+import Hive, { spawnStateNode, useNodeContext } from "@lespantsfancy/hive";
 
 export const Context = React.createContext(StateNode);
 
