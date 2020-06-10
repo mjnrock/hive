@@ -2,7 +2,7 @@
     "name": "@lespantsfancy/hive",
     "version": "0.1.7",
     "description": "",
-    "main": "lib/index.js",
+    "main": "lib/package.js",
     "directories": {
         "test": "tests"
     },
