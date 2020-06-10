@@ -1,3 +1,3 @@
-import ALL from "./lib/package";
+import ALL from "./package";
 
 export default ALL;
