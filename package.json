@@ -1,6 +1,6 @@
 {
     "name": "hive",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "",
     "main": "lib/index.js",
     "directories": {
@@ -26,8 +26,8 @@
         "qrcode": "^1.4.4"
     },
     "peerDependencies": {
-        "react": "^16.13.1",    
-        "react-dom": "^16.13.1",    
+        "react": "^16.13.1",
+        "react-dom": "^16.13.1",
         "react-scripts": "3.4.1"
     },
     "devDependencies": {
