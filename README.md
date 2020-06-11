@@ -28,8 +28,8 @@ As a general rule, if the method is spelled in `camelCase`, then it is an intern
 `Node extends EventEmitter` and, as such, has all of the `.on`, `.off`, etc. methods available to it.  Two (2) events are prepopulated (`state` and `message`), which have native handlers.  The `EventEmitter` allows for multiple handlers, so you can have additional custom handlers to *any* event--including `state` and `message`--without direct consequences by that fact itself.
 |Method|Parameters|Description|
 |---|---|---|
-|`.watchState`|`(node, ?twoWay)`|A node can watch the `state` event of another node by way of a `Message` sent to its `.onState` method (which is overwritable if needed, but probably shouldn't be).|
-|`.watchMessages`|`(node, ?twoWay)`|A node can watch the `message` event of another node by way of a `Message` sent to its `.onMessage` method (which is overwritable if needed, but probably shouldn't be).|
+|`.watchState`|`(node, ?twoWay = false)`|A node can watch the `state` event of another node by way of a `Message` sent to its `.onState` method (which is overwritable if needed, but probably shouldn't be).  `@twoWay = true` will cause `@node` to reciprocate `.watchState`, making both watch each other.|
+|`.watchMessages`|`(node, ?twoWay = false)`|A node can watch the `message` event of another node by way of a `Message` sent to its `.onMessage` method (which is overwritable if needed, but probably shouldn't be).  `@twoWay = true` will cause `@node` to reciprocate `.watchMessages`, making both watch each other.|
 |`.addReducer`|`(fn)|(type, fn)`|All `reducers` should return the new `state`.  If a `@type` is also specified, the reducer will only fire if `message.type === @type`.  If no `state` is returned, then the current `state` will be used; this allows for "viewing" methods to be injected without consequence [e.g. `.addReducer(console.log)`].|
 |`.dispatch`|`(type, payload)`|Used to `.emit(EnumEventType.MESSAGE, new Message(type, payload, this));`|
 |`.before`|`(state, message, node)`|Used to perform any modifications before the `reducers` are called.|
