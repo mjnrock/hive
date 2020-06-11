@@ -1,5 +1,5 @@
 ## Methods
-As a general rule, if the method is spelled in `camelCase`, then it is an internal, `this`-applicable method; if it is `ProperCase`, then it is a `static` method.
+As a general rule, if the method is spelled in `camelCase`, then it is an internal, `this`-applicable method; if it is `ProperCase`, then it is a `static` method, and must be invoked via `ClassName.MethodName`.
 
 ### Package Exports
 > `import Hive, { spawnStateNode, useNodeContext } from "@lespantsfancy/hive";`
