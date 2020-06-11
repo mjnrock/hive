@@ -14,10 +14,14 @@ export function useNodeContext(context) {
         const componentNode = new Node();
 
         componentNode.watchMessages(ctxNode);
-        componentNode.after = (msg) => {
+        componentNode.after = (state, msg, node) => {
             setState({
-                node: ctxNode,
-                state: ctxNode.state
+                node: node,
+                state: node.state,
+
+                newState: state,
+                oldState: node.state,
+                lastMessage: msg,
             });
         }
 
