@@ -79,21 +79,27 @@ export default class Node extends EventEmitter {
                 this.before(this._state, msg, this);
             }
 
+            let state = Object.assign({}, this.state);
             for(let reducer of this._reducers) {
                 if(typeof reducer === "function") {
-                    let newState = reducer(this._state, msg, this) || this.state;
+                    let newState = reducer(this._state, msg, this) || state;
 
                     if(!(typeof newState === "object" || Array.isArray(newState))) {
                         newState = [ newState ];
                     }
 
-                    this.state = newState;
+                    state = {
+                        ...state,
+                        ...newState
+                    };
                 }
             }
             
             if(typeof this.after === "function") {
-                this.after(this._state, msg, this);
+                this.after(state, msg, this);
             }
+
+            this.state = state;
         }
     }
     watchMessages(node, twoWay = false) {
