@@ -1,6 +1,6 @@
 {
     "name": "@lespantsfancy/hive",
-    "version": "0.1.20",
+    "version": "0.1.21",
     "description": "",
     "main": "lib/package.js",
     "directories": {
