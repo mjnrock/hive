@@ -76,12 +76,12 @@ export default class Node extends EventEmitter {
 
         if((this.config.isSelfMessaging && msg.emitter.id === this.id) || msg.emitter.id !== this.id) {            
             if(typeof this.before === "function") {
-                this.before(msg, this);
+                this.before(this._state, msg, this);
             }
 
             for(let reducer of this._reducers) {
                 if(typeof reducer === "function") {
-                    let newState = reducer.call(this, this._state, msg) || this.state;
+                    let newState = reducer(this._state, msg, this) || this.state;
 
                     if(!(typeof newState === "object" || Array.isArray(newState))) {
                         newState = [ newState ];
@@ -92,7 +92,7 @@ export default class Node extends EventEmitter {
             }
             
             if(typeof this.after === "function") {
-                this.after(msg, this);
+                this.after(this._state, msg, this);
             }
         }
     }
