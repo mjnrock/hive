@@ -93,12 +93,12 @@ export default class Node extends EventEmitter {
                     state = newState;
                 }
             }
-            
-            if(typeof this.after === "function") {
-                this.after(state, msg, this);
-            }
 
             this.state = state;
+            
+            if(typeof this.after === "function") {
+                this.after(this.state, msg, this);
+            }
         }
     }
     watchMessages(node, twoWay = false) {
