@@ -79,7 +79,7 @@ export default class Node extends EventEmitter {
             let state = Object.assign({}, this.state);
 
             if(typeof this.before === "function") {
-                this.before(state, msg, this);
+                this.before.call(this, state, msg, this);
             }
 
             for(let reducer of this._reducers) {
@@ -90,15 +90,12 @@ export default class Node extends EventEmitter {
                         newState = [ newState ];
                     }
 
-                    state = {
-                        ...state,
-                        ...newState
-                    };
+                    state = newState;
                 }
             }
             
             if(typeof this.after === "function") {
-                this.after(state, msg, this);
+                this.after.call(this, state, msg, this);
             }
 
             this.state = state;
