@@ -172,7 +172,7 @@ export default class Node extends EventEmitter {
             if(typeof reducer === "function") {
                 this._reducers.push((state, msg) => {
                     if(msg.type === type) {
-                        return reducer(state, msg);
+                        return reducer(state, msg, this);
                     }
 
                     return state;

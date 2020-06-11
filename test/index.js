@@ -19,7 +19,7 @@ const StateNode = spawnStateNode({
     },
 
     frames: {},
-}, );
+});
 
 StateNode.addFrame = function(x, y, image) {
     this.state = {
