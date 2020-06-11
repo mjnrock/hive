@@ -15,13 +15,11 @@ export function useNodeContext(context) {
 
         componentNode.watchMessages(ctxNode);
         componentNode.after = (state, msg, node) => {
+            console.info(state, msg, node);
+            
             setState({
-                node: node,
-                state: node.state,
-
-                newState: state,
-                oldState: node.state,
-                lastMessage: msg,
+                node: ctxNode,
+                state: ctxNode.state
             });
         }
 
