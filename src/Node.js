@@ -74,15 +74,16 @@ export default class Node extends EventEmitter {
             return;
         }
 
-        if((this.config.isSelfMessaging && msg.emitter.id === this.id) || msg.emitter.id !== this.id) {            
+        if((this.config.isSelfMessaging && msg.emitter.id === this.id) || msg.emitter.id !== this.id) {     
+            let state = Object.assign({}, this.state);
+
             if(typeof this.before === "function") {
-                this.before(this._state, msg, this);
+                this.before(state, msg, this);
             }
 
-            let state = Object.assign({}, this.state);
             for(let reducer of this._reducers) {
                 if(typeof reducer === "function") {
-                    let newState = reducer(this._state, msg, this) || state;
+                    let newState = reducer(state, msg, this) || state;
 
                     if(!(typeof newState === "object" || Array.isArray(newState))) {
                         newState = [ newState ];
