@@ -19,7 +19,13 @@ export function useNodeContext(context) {
             
             setState({
                 node: ctxNode,
-                state: ctxNode.state
+                state: ctxNode.state,
+
+                other: {
+                    state,
+                    msg,
+                    node
+                }
             });
         }
 
