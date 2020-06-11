@@ -68,7 +68,7 @@ function SubComponent(props) {
 
 export default function App() {
     return (
-        <Context.Provider value={{ node: initStateNode }}>
+        <Context.Provider value={{ node: initStateNode }}> {/* sic */}
             <SubComponent />
             <SubComponent />
             <SubComponent />
