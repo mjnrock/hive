@@ -33,7 +33,7 @@ As a general rule, if the method is spelled in `camelCase`, then it is an intern
 |`.addReducer`|`(fn)|(type, fn)`|All `reducers` should return the new `state`.  If a `@type` is also specified, the reducer will only fire if `message.type === @type`.  If no `state` is returned, then the current `state` will be used; this allows for "viewing" methods to be injected without consequence [e.g. `.addReducer(console.log)`].|
 |`.dispatch`|`(type, payload)`|Used to `.emit(EnumEventType.MESSAGE, new Message(type, payload, this));`|
 |`.before`|`(state, message, node)`|Used to perform any modifications before the `reducers` are called.|
-|`.after`|`(state, message, node)`|Used as a pseudo `useEffect` proxy, called after all of the `reducers` have run, immediately before the `state` has been altered.  As such, any effect will be caught by the rerender if using `useNodeContext`.|
+|`.after`|`(state, message, node)`|Used as a pseudo `useEffect` proxy, called after all of the `reducers` have run, immediately after the `state` has been altered.|
 |`.flatten`|`()`|This will convert the `this.state` into an array of [ dot notation, value ] arrays.  For example, if the `state = { cat: { count : 5 }, dog: "bob" }`, `.flatten` will return `[ [ "cat.count", 5 ], [ "dog", "bob" ] ]`.|
 |`.unflatten`|`("flattened" array)`|This undoes `.flatten`.  An input of `[ [ "cat.count", 5 ], [ "dog", "bob" ] ]` will return `{ cat: { count : 5 }, dog: "bob" }` ***AND*** *set `this.state`* to the newly-created object.|
 
