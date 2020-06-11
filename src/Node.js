@@ -20,7 +20,7 @@ export default class Node extends EventEmitter {
             isSelfMessaging: true
         };
 
-        this.on(EnumEventType.MESSAGE, this.onMessage.bind(this));
+        this.watchMessages(this);
         this.watchState(this);
     }
 
@@ -76,10 +76,10 @@ export default class Node extends EventEmitter {
         }
 
         if((this.config.isSelfMessaging && msg.emitter.id === this.id) || msg.emitter.id !== this.id) {     
-            let state = this.state;
+            let state = Object.assign({}, this.state);
 
             if(typeof this.before === "function") {
-                this.before.call(this, state, msg, this);
+                this.before(state, msg, this);
             }
 
             for(let reducer of this._reducers) {
@@ -95,7 +95,7 @@ export default class Node extends EventEmitter {
             }
             
             if(typeof this.after === "function") {
-                this.after.call(this, state, msg, this);
+                this.after(state, msg, this);
             }
 
             this.state = state;
@@ -128,12 +128,12 @@ export default class Node extends EventEmitter {
     watchState(node, twoWay = false) {
         if(node instanceof EventEmitter) {
             node.on(EnumEventType.STATE, stateObj => {
-                this.onState.call(this, stateObj);
+                this.onState(stateObj);
             });
 
             if(twoWay) {
                 this.on(EnumEventType.STATE, stateObj => {
-                    node.onState.call(this, stateObj);
+                    node.onState(stateObj);
                 });
             }
         }
@@ -143,12 +143,12 @@ export default class Node extends EventEmitter {
     unwatchState(node, twoWay = false) {
         if(node instanceof EventEmitter) {
             node.off(EnumEventType.STATE, stateObj => {
-                this.onState.call(this, stateObj);
+                this.onState(stateObj);
             });
 
             if(twoWay) {
                 this.off(EnumEventType.STATE, stateObj => {
-                    node.onState.call(this, stateObj);
+                    node.onState(stateObj);
                 });
             }
         }
