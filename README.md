@@ -66,6 +66,7 @@ function SubComponent(props) {
 }
 
 
+// To explicate *sic*, the `value` is not missing inputs; `useNodeContext` extracts its properties from the passed `Node`.  `node`, however, is **required** for `useNodeContext` to function properly.
 export default function App() {
     return (
         <Context.Provider value={{ node: initStateNode }}> {/* sic */}
