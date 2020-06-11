@@ -20,7 +20,8 @@ export default class Node extends EventEmitter {
             isSelfMessaging: true
         };
 
-        this.on(EnumEventType.MESSAGE, this.onMessage.bind(this));
+        this.watchMessages(this);
+        this.watchState(this);
     }
 
     get state() {
