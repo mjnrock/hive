@@ -20,7 +20,7 @@ export default class Node extends EventEmitter {
             isSelfMessaging: true
         };
 
-        this.watchMessages(this);
+        this.on(EnumEventType.MESSAGE, this.onMessage.bind(this));
         this.watchState(this);
     }
 
@@ -76,7 +76,7 @@ export default class Node extends EventEmitter {
         }
 
         if((this.config.isSelfMessaging && msg.emitter.id === this.id) || msg.emitter.id !== this.id) {     
-            let state = Object.assign({}, this.state);
+            let state = this.state;
 
             if(typeof this.before === "function") {
                 this.before.call(this, state, msg, this);
@@ -128,12 +128,12 @@ export default class Node extends EventEmitter {
     watchState(node, twoWay = false) {
         if(node instanceof EventEmitter) {
             node.on(EnumEventType.STATE, stateObj => {
-                this.onState(stateObj);
+                this.onState.call(this, stateObj);
             });
 
             if(twoWay) {
                 this.on(EnumEventType.STATE, stateObj => {
-                    node.onState(stateObj);
+                    node.onState.call(this, stateObj);
                 });
             }
         }
@@ -143,12 +143,12 @@ export default class Node extends EventEmitter {
     unwatchState(node, twoWay = false) {
         if(node instanceof EventEmitter) {
             node.off(EnumEventType.STATE, stateObj => {
-                this.onState(stateObj);
+                this.onState.call(this, stateObj);
             });
 
             if(twoWay) {
                 this.off(EnumEventType.STATE, stateObj => {
-                    node.onState(stateObj);
+                    node.onState.call(this, stateObj);
                 });
             }
         }
