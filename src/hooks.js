@@ -23,6 +23,7 @@ export function useNodeContext(context) {
 
         return () => {
             componentNode.unwatchMessages(ctxNode);
+            componentNode.after = null;
             componentNode = null;
         }
     }, []);
