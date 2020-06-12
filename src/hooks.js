@@ -11,7 +11,7 @@ export function useNodeContext(context) {
     });
 
     useEffect(() => {
-        const componentNode = new Node();
+        let componentNode = new Node();
 
         componentNode.watchMessages(ctxNode);
         componentNode.after = (state, msg, node) => {            
@@ -21,7 +21,10 @@ export function useNodeContext(context) {
             });
         }
 
-        return () => componentNode.unwatchMessages(ctxNode);
+        return () => {
+            componentNode.unwatchMessages(ctxNode);
+            componentNode = null;
+        }
     }, []);
 
     return state;

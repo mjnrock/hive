@@ -5,8 +5,8 @@ import { freeze, freezeCopy } from "./functions";
 import Message from "./Message";
 
 export const EnumEventType = {
-    STATE: "state",
-    MESSAGE: "message",
+    STATE: "Node.state",
+    MESSAGE: "Node.message",
 };
 
 export default class Node extends EventEmitter {
@@ -22,6 +22,8 @@ export default class Node extends EventEmitter {
 
         this.watchMessages(this);
         this.watchState(this);
+        
+        this.setMaxListeners(1000);
     }
 
     get state() {
