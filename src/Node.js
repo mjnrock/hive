@@ -7,6 +7,7 @@ import Message from "./Message";
 export const EnumEventType = {
     STATE: "Node.state",
     MESSAGE: "Node.message",
+    PING: "Node.ping",
 };
 
 export default class Node extends EventEmitter {
@@ -130,12 +131,12 @@ export default class Node extends EventEmitter {
     watchState(node, twoWay = false) {
         if(node instanceof EventEmitter) {
             node.on(EnumEventType.STATE, stateObj => {
-                this.onState(stateObj);
+                this.onState(stateObj, this);
             });
 
             if(twoWay) {
                 this.on(EnumEventType.STATE, stateObj => {
-                    node.onState(stateObj);
+                    node.onState(stateObj, this);
                 });
             }
         }
@@ -156,6 +157,12 @@ export default class Node extends EventEmitter {
         }
 
         return this;
+    }
+
+    // Emit a direct event and a Message-driven event
+    ping() {
+        this.emit(EnumEventType.PING, this.state);
+        this.dispatch(EnumEventType.PING, this.state);
     }
 
     addReducer() {
