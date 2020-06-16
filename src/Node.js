@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { v4 as uuidv4 } from "uuid";
 
-import { freeze, freezeCopy } from "./functions";
+import { freezeCopy } from "./functions";
 import Message from "./Message";
 
 export const EnumEventType = {
@@ -15,7 +15,7 @@ export default class Node extends EventEmitter {
         super();
 
         this.id = uuidv4();
-        this._state = freeze(state);
+        this._state = Object.seal(state);
         this._reducers = [];
         this._config = {
             isSelfMessaging: true
