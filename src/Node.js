@@ -163,6 +163,13 @@ export default class Node extends EventEmitter {
         return this;
     }
 
+    command(fn, ...args) {
+        this.emit(EnumEventType.COMMAND, new Command(
+            fn,
+            args,
+            this,
+        ));
+    }
     onCommand(cmd) {
         if(this.config.allowCommands === true) {
             if(!Command.Conforms(cmd)) {
