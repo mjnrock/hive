@@ -3,10 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 
 import { freezeCopy } from "./functions";
 import Message from "./Message";
+import Command from "./Command";
 
 export const EnumEventType = {
     STATE: "Node.state",
     MESSAGE: "Node.message",
+    COMMAND: "Node.command",
     PING: "Node.ping",
 };
 
@@ -18,11 +20,13 @@ export default class Node extends EventEmitter {
         this._state = Object.seal(state);
         this._reducers = [];
         this._config = {
-            isSelfMessaging: true
+            isSelfMessaging: true,
+            allowCommands: false,
         };
 
         this.watchMessages(this);
         this.watchState(this);
+        this.watchCommands(this);
         
         this.setMaxListeners(1000);
     }
@@ -152,6 +156,49 @@ export default class Node extends EventEmitter {
             if(twoWay) {
                 this.off(EnumEventType.STATE, stateObj => {
                     node.onState(stateObj);
+                });
+            }
+        }
+
+        return this;
+    }
+
+    onCommand(cmd) {
+        if(this.config.allowCommands === true) {
+            if(!Command.Conforms(cmd)) {
+                return;
+            }
+
+            const { fn, args } = cmd;
+            if(typeof this[ fn ] === "function") {
+                return this[ fn ](...args);
+            }
+        }
+    }
+    watchCommands(node, twoWay = false) {
+        if(node instanceof EventEmitter) {
+            node.on(EnumEventType.COMMAND, cmd => {
+                this.onCommand(cmd, this);
+            });
+
+            if(twoWay) {
+                this.on(EnumEventType.COMMAND, cmd => {
+                    node.onCommand(cmd, this);
+                });
+            }
+        }
+
+        return this;
+    }
+    unwatchCommands(node, twoWay = false) {
+        if(node instanceof EventEmitter) {
+            node.off(EnumEventType.COMMAND, cmd => {
+                this.onCommand(cmd);
+            });
+
+            if(twoWay) {
+                this.off(EnumEventType.COMMAND, cmd => {
+                    node.onCommand(cmd);
                 });
             }
         }
