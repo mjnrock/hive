@@ -17,8 +17,9 @@ export default class Node extends EventEmitter {
         super();
 
         this.id = uuidv4();
-        this._state = Object.seal(state);
+        this._state = state;
         this._reducers = [];
+        this._effects = new Set();
         this._config = {
             isSelfMessaging: true,
             allowCommands: false,
@@ -39,10 +40,10 @@ export default class Node extends EventEmitter {
 
         this._state = newState;
 
-        this.emit(EnumEventType.STATE, freezeCopy({
+        this.emit(EnumEventType.STATE, {
             previous: oldState,
             current: newState
-        }));
+        });
     }
     get config() {
         return this._config;
@@ -86,12 +87,12 @@ export default class Node extends EventEmitter {
             let state = Object.assign({}, this.state);
 
             if(typeof this.before === "function") {
-                this.before(state, msg, this);
+                this.before.call(this, state, msg);
             }
 
             for(let reducer of this._reducers) {
                 if(typeof reducer === "function") {
-                    let newState = reducer(state, msg, this) || state;
+                    let newState = reducer.call(this, state, msg, this) || state;
 
                     if(!(typeof newState === "object" || Array.isArray(newState))) {
                         newState = [ newState ];
@@ -104,7 +105,13 @@ export default class Node extends EventEmitter {
             this.state = state;
             
             if(typeof this.after === "function") {
-                this.after(this.state, msg, this);
+                this.after.call(this, this.state, msg);
+            }
+
+            for(let effect of [ ...this._effects ]) {
+                if(typeof effect === "function") {
+                    effect.call(this, this.state);
+                }
             }
         }
     }
@@ -134,14 +141,14 @@ export default class Node extends EventEmitter {
     onState(stateObj) {}
     watchState(node, twoWay = false) {
         if(node instanceof EventEmitter) {
-            node.on(EnumEventType.STATE, stateObj => {
-                this.onState(stateObj, this);
-            });
+            node.on(EnumEventType.STATE, function(stateObj) {
+                this.onState(stateObj);
+            }.bind(this));
 
             if(twoWay) {
-                this.on(EnumEventType.STATE, stateObj => {
-                    node.onState(stateObj, this);
-                });
+                this.on(EnumEventType.STATE, function(stateObj) {
+                    node.onState(stateObj);
+                }.bind(this));
             }
         }
 
@@ -149,14 +156,14 @@ export default class Node extends EventEmitter {
     }
     unwatchState(node, twoWay = false) {
         if(node instanceof EventEmitter) {
-            node.off(EnumEventType.STATE, stateObj => {
+            node.off(EnumEventType.STATE, function(stateObj) {
                 this.onState(stateObj);
-            });
+            }.bind(this));
 
             if(twoWay) {
-                this.off(EnumEventType.STATE, stateObj => {
+                this.off(EnumEventType.STATE, function(stateObj) {
                     node.onState(stateObj);
-                });
+                }.bind(this));
             }
         }
 
@@ -184,14 +191,14 @@ export default class Node extends EventEmitter {
     }
     watchCommands(node, twoWay = false) {
         if(node instanceof EventEmitter) {
-            node.on(EnumEventType.COMMAND, cmd => {
-                this.onCommand(cmd, this);
-            });
+            node.on(EnumEventType.COMMAND, function(cmd) {
+                this.onCommand(cmd);
+            }.bind(this));
 
             if(twoWay) {
-                this.on(EnumEventType.COMMAND, cmd => {
-                    node.onCommand(cmd, this);
-                });
+                this.on(EnumEventType.COMMAND, function(cmd) {
+                    node.onCommand(cmd);
+                }.bind(this));
             }
         }
 
@@ -199,14 +206,14 @@ export default class Node extends EventEmitter {
     }
     unwatchCommands(node, twoWay = false) {
         if(node instanceof EventEmitter) {
-            node.off(EnumEventType.COMMAND, cmd => {
+            node.off(EnumEventType.COMMAND, function(cmd) {
                 this.onCommand(cmd);
-            });
+            }.bind(this));
 
             if(twoWay) {
-                this.off(EnumEventType.COMMAND, cmd => {
+                this.off(EnumEventType.COMMAND, function(cmd) {
                     node.onCommand(cmd);
-                });
+                }.bind(this));
             }
         }
 
@@ -219,12 +226,27 @@ export default class Node extends EventEmitter {
         this.dispatch(EnumEventType.PING, this.state);
     }
 
+    addEffect(fn) {
+        if(typeof fn === "function") {
+            this._effects.add(fn);
+        }
+
+        return this;
+    }
+    removeEffect(fn) {
+        if(typeof fn === "function") {
+            this._effects.delete(fn);
+        }
+
+        return this;
+    }
+
     addReducer() {
         if(arguments.length === 1) {
             const [ reducer ] = arguments;
 
             if(typeof reducer === "function") {
-                this._reducers.push(reducer);
+                this._reducers.push(reducer.bind(this));
             }
         } else if(arguments.length === 2) {
             const [ type, reducer ] = arguments;
@@ -232,7 +254,7 @@ export default class Node extends EventEmitter {
             if(typeof reducer === "function") {
                 this._reducers.push((state, msg) => {
                     if(msg.type === type) {
-                        return reducer(state, msg, this);
+                        return reducer.call(this, state, msg);
                     }
 
                     return state;
@@ -241,7 +263,7 @@ export default class Node extends EventEmitter {
         }
 
         return this;
-    }    
+    }
     clearReducers() {
         this._reducers = [];
 
