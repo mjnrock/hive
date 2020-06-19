@@ -92,7 +92,7 @@ export default class Node extends EventEmitter {
 
             for(let reducer of this._reducers) {
                 if(typeof reducer === "function") {
-                    let newState = reducer.call(this, state, msg, this) || state;
+                    let newState = reducer.call(this, state, msg) || state;
 
                     if(!(typeof newState === "object" || Array.isArray(newState))) {
                         newState = [ newState ];
@@ -110,7 +110,7 @@ export default class Node extends EventEmitter {
 
             for(let effect of [ ...this._effects ]) {
                 if(typeof effect === "function") {
-                    effect.call(this, this.state);
+                    effect.call(this, this.state, msg);
                 }
             }
         }
