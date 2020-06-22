@@ -4,7 +4,6 @@ import Message from "./Message";
 import Command from "./Command";
 
 export { spawnStateNode } from "./state";
-export { useNodeContext } from "./hooks";
 
 export default {
     Node,
