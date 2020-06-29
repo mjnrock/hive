@@ -49,6 +49,19 @@ export default class Node extends EventEmitter {
         return this._config;
     }
 
+    mergeState(state = {}) {
+        this._state = {
+            ...this._state,
+            ...state,
+        };
+    }
+    mergeConfig(obj = {}) {
+        this._config = {
+            ...this._config,
+            ...obj,
+        };
+    }
+
     flagOn(configEntry) {
         if(configEntry in this._config) {
             this._config[ configEntry ] = true;
