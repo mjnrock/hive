@@ -12,24 +12,8 @@ export const EnumEventType = {
 };
 
 export default class MouseNode extends Node {
-    constructor({ element } = {}) {
-        super();
-
-        this.mergeConfig({
-            allowComplexActions: false,
-            moveRequiresButton: true,
-
-            swipe: {
-                timeout: 500,
-                threshold: 75,
-            },
-            selection: {
-                timeout: 5000,
-                threshold: 20
-            },
-        });
-
-        this._state = {
+    constructor({ element, state = {}, config = {} } = {}) {
+        super({
             map: [
                 {
                     button: 1,
@@ -58,7 +42,25 @@ export default class MouseNode extends Node {
                 middle: [],
                 right: [],
             },
-        };
+
+            ...state,
+        });
+
+        this.mergeConfig({
+            allowComplexActions: false,
+            moveRequiresButton: true,
+
+            swipe: {
+                timeout: 500,
+                threshold: 75,
+            },
+            selection: {
+                timeout: 5000,
+                threshold: 20
+            },
+
+            ...config,
+        });
 
         if(element) {
             element.onmousedown = e => this.onMouseDown.call(this, e);
