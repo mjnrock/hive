@@ -12,11 +12,12 @@ export const EnumEventType = {
 };
 
 export default class Node extends EventEmitter {
-    constructor(state = {}) {
+    constructor(state = {}, { governor } = {}) {
         super();
 
         this.id = uuidv4();
         this._state = state;
+        this._governor = governor;
         this._reducers = [];
         this._effects = new Set();
         this._config = {
@@ -46,6 +47,15 @@ export default class Node extends EventEmitter {
     }
     get config() {
         return this._config;
+    }
+
+    get governor() {
+        return this._governor;
+    }
+    set governor(fn) {
+        if(typeof fn === "function") {
+            this._governor = fn;
+        }
     }
 
     mergeState(state = {}) {
@@ -195,9 +205,20 @@ export default class Node extends EventEmitter {
                 return;
             }
 
-            const { fn, args } = cmd;
-            if(typeof this[ fn ] === "function") {
-                return this[ fn ](...args);
+            if(this.governor) {
+                if(this.governor(cmd) === true) {
+                    const { fn, args } = cmd;
+                    
+                    if(typeof this[ fn ] === "function") {
+                        return this[ fn ](...args);
+                    }
+                }
+            } else {
+                const { fn, args } = cmd;
+                
+                if(typeof this[ fn ] === "function") {
+                    return this[ fn ](...args);
+                }
             }
         }
     }
