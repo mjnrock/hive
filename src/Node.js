@@ -12,14 +12,14 @@ export const EnumEventType = {
 };
 
 export default class Node extends EventEmitter {
-    constructor(state = {}, { governor } = {}) {
+    constructor(state = {}, { reducers = [], effects = [], governor } = {}) {
         super();
 
         this.id = uuidv4();
         this._state = state;
         this._governor = governor;
-        this._reducers = [];
-        this._effects = new Set();
+        this._reducers = reducers;
+        this._effects = new Set(effects);
         this._config = {
             isSelfMessaging: true,
             allowCommands: false,
@@ -208,14 +208,14 @@ export default class Node extends EventEmitter {
             if(this.governor) {
                 if(this.governor(cmd) === true) {
                     const { fn, args } = cmd;
-                    
+
                     if(typeof this[ fn ] === "function") {
                         return this[ fn ](...args);
                     }
                 }
             } else {
                 const { fn, args } = cmd;
-                
+
                 if(typeof this[ fn ] === "function") {
                     return this[ fn ](...args);
                 }
