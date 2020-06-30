@@ -1,5 +1,5 @@
 import Node from "./../Node";
-import { Bitwise } from "./../ext/Helper";
+import { Bitwise } from "./Helper";
 
 export const EnumEventType = {
     MOUSE_MASK: "MouseNode.Mask",
@@ -33,7 +33,13 @@ export default class MouseNode extends Node {
                     name: "RIGHT",
                 },
             ],
-            mask: 0,
+            mask: {
+                current: 0,
+                previous: 0,
+            },
+            
+            // hooks: {},
+
             selection: {
                 left: [],
                 middle: [],
@@ -90,25 +96,33 @@ export default class MouseNode extends Node {
         }
     }
 
-    updateMask(e) {
-        let mask = this.state.mask;
+    get mask() {
+        return this.state.mask.current;
+    }
+
+    updateMask(e, action) {
+        let mask = this.state.mask.current;
 
         for(let entry of this.state.map) {
             if(entry.button === e.which) {
-                if(Bitwise.has(mask, entry.flag)) {
+                if(action === true) {
+                    mask = Bitwise.add(mask, entry.flag);
+                } else if(action === false) {
                     mask = Bitwise.remove(mask, entry.flag);
                 } else {
-                    mask = Bitwise.add(mask, entry.flag)
+                    if(Bitwise.has(mask, entry.flag)) {
+                        mask = Bitwise.remove(mask, entry.flag);
+                    } else {
+                        mask = Bitwise.add(mask, entry.flag);
+                    }
                 }
             }
         }
-        this.state = {
-            ...this.state,
-            mask
-        };
+        this.state.mask.previous = this.state.mask.current;
+        this.state.mask.current = mask;
 
-        if(this.config.allowComplexActions === true) {
-            this.dispatch(EnumEventType.MOUSE_MASK, this.state.mask);
+        if(this.config.allowComplexActions === true && this.state.mask.current !== this.state.mask.previous) {
+            this.dispatch(EnumEventType.MOUSE_MASK, this.state.mask.current);
         }
     }
 
@@ -343,7 +357,7 @@ export default class MouseNode extends Node {
     onMouseDown(e) {
         e.preventDefault();
 
-        this.updateMask(e);
+        this.updateMask(e, true);
         this.dispatch(EnumEventType.MOUSE_DOWN, e);
 
         this._click.begin(e);
@@ -354,7 +368,7 @@ export default class MouseNode extends Node {
     onMouseUp(e) {
         e.preventDefault();
 
-        this.updateMask(e);
+        this.updateMask(e, false);
         this.dispatch(EnumEventType.MOUSE_UP, e);
 
         this._click.end(e);
@@ -364,8 +378,6 @@ export default class MouseNode extends Node {
     }
     onMouseMove(e) {
         e.preventDefault();
-
-        this.updateMask(e);
 
         if(this.config.moveRequiresButton === true) {
             if(e.buttons > 0) {
@@ -378,7 +390,87 @@ export default class MouseNode extends Node {
     onContextMenu(e) {
         e.preventDefault();
 
-        this.updateMask(e);
         this.dispatch(EnumEventType.MOUSE_CONTEXT_MENU, e);
     }
 }
+
+// static AttachHook(node, { name, anchor, threshold, timeout, begin, end } = {}) {
+//     if(node instanceof MouseNode) {
+//         node.mergeState({
+//             [ name ]: {
+//                 left: [],
+//                 middle: [],
+//                 right: [],
+//             },
+//         });
+//         node.mergeConfig({
+//             [ name ]: {
+//                 timeout: timeout,
+//                 threshold: threshold,
+//             },
+//         });
+
+//         if(typeof node.state.hooks[ anchor ] !== "object") {
+//             node.state.hooks[ anchor ] = {};
+//         }
+
+//         node.state.hooks[ anchor ][ name ] = {
+//             begin,
+//             end,
+//         };
+//     }
+// }
+
+
+
+    // __begin(prop) {
+    //     const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
+
+    //     if(btn && this.state[ prop ] && this.config[ prop ]) {
+    //         this.state[ prop ][ btn ] = [];
+    //         this.state[ prop ][ btn ].push([ e.x, e.y, Date.now() ]);
+
+    //         setTimeout(() => {
+    //             if(this.state[ prop ][ btn ].length) {
+    //                 this.state[ prop ][ btn ] = [];
+    //             }
+    //         }, this.config[ prop ].timeout);
+    //     }
+    // }
+    // __end(eventType, prop, { fn, obj = {} } = {}) {
+    //     const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
+        
+    //     if(btn && this.state[ prop ] && this.config[ prop ]) {
+    //         if(typeof fn === "function") {
+    //             fn(btn, [ eventType, prop ]);
+    //         } else {
+    //             this.state[ prop ][ btn ].push([ e.x, e.y, Date.now() ]);
+
+    //             if(this.state[ prop ][ btn ].length === 2) {
+    //                 const [ [ x0, y0, t0 ], [ x1, y1, t1 ] ] = this.state[ prop ][ btn ];
+    //                 const dx = x1 - x0;
+    //                 const dy = y1 - y0;
+    //                 const dt = t1 - t0;
+
+    //                 if(dt <= this.config[ prop ].timeout && (Math.abs(dx) <= this.config[ prop ].threshold && Math.abs(dy) <= this.config[ prop ].threshold)) {
+    //                     if(Object.keys(obj).length) {
+    //                         this.dispatch(eventType, obj);
+    //                     } else {
+    //                         this.dispatch(eventType, {
+    //                             button: btn,
+    //                             start: {
+    //                                 x: x0,
+    //                                 y: y0,
+    //                             },
+    //                             end: {
+    //                                 x: x1,
+    //                                 y: y1,
+    //                             },
+    //                         });
+    //                     }
+    //                 }
+    //                 this.state[ prop ][ btn ] = [];
+    //             }
+    //         }            
+    //     }
+    // }
