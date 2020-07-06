@@ -1,7 +1,7 @@
 import Node from "./../Node";
 import { Bitwise } from "./Helper";
 
-export const EnumEventType = {
+export const EnumMessageType = {
     MOUSE_MASK: "MouseNode.Mask",
     MOUSE_DOWN: "MouseNode.Down",
     MOUSE_UP: "MouseNode.Up",
@@ -37,6 +37,7 @@ export default class MouseNode extends Node {
                 current: 0,
                 previous: 0,
             },
+            element: element,
             
             // hooks: {},
 
@@ -100,6 +101,10 @@ export default class MouseNode extends Node {
         return this.state.mask.current;
     }
 
+    get element() {
+        return this.state.element;
+    }
+
     updateMask(e, action) {
         let mask = this.state.mask.current;
 
@@ -122,18 +127,35 @@ export default class MouseNode extends Node {
         this.state.mask.current = mask;
 
         if(this.config.allowComplexActions === true && this.state.mask.current !== this.state.mask.previous) {
-            this.dispatch(EnumEventType.MOUSE_MASK, this.state.mask.current);
+            this.dispatch(EnumMessageType.MOUSE_MASK, this.state.mask.current);
+        }
+    }
+
+    getRelativePosition(e) {
+        if("getBoundingClientRect" in (this.element || {})) {
+            const { x, y } = this.element.getBoundingClientRect();
+
+            return {
+                x: e.x - x,
+                y: e.y - y,
+            };
+        }
+
+        return {
+            x: e.x,
+            y: e.y,
         }
     }
 
     get _click() {
         return {
             begin: (e) => {
+                const { x, y } = this.getRelativePosition(e);
                 const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
 
                 if(btn) {
                     this.state.click[ btn ] = [];
-                    this.state.click[ btn ].push([ e.x, e.y, Date.now() ]);
+                    this.state.click[ btn ].push([ x, y, Date.now() ]);
 
                     setTimeout(() => {
                         if(this.state.click[ btn ].length) {
@@ -143,10 +165,11 @@ export default class MouseNode extends Node {
                 }
             },
             end: (e) => {
+                const { x, y } = this.getRelativePosition(e);
                 const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
                 
                 if(btn) {
-                    this.state.click[ btn ].push([ e.x, e.y, Date.now() ]);
+                    this.state.click[ btn ].push([ x, y, Date.now() ]);
 
                     if(this.state.click[ btn ].length === 2) {
                         const [ [ x0, y0, t0 ], [ x1, y1, t1 ] ] = this.state.click[ btn ];
@@ -155,8 +178,8 @@ export default class MouseNode extends Node {
                         const dt = t1 - t0;
     
                         if(dt <= this.config.click.timeout && (Math.abs(dx) <= this.config.click.threshold && Math.abs(dy) <= this.config.click.threshold)) {
-                            this.dispatch(EnumEventType.MOUSE_CLICK, {
-                                type: EnumEventType.MOUSE_CLICK,
+                            this.dispatch(EnumMessageType.MOUSE_CLICK, {
+                                mask: this.state.mask.current,
                                 button: btn,
                                 start: {
                                     x: x0,
@@ -177,6 +200,7 @@ export default class MouseNode extends Node {
     get _doubleClick() {
         return {
             begin: (e) => {
+                const { x, y } = this.getRelativePosition(e);
                 const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
 
                 if(btn) {
@@ -190,7 +214,7 @@ export default class MouseNode extends Node {
                             }
                         }, this.config.doubleClick.timeout);
                         
-                        this.state.doubleClick[ btn ].push([ e.x, e.y, Date.now(), timeout ]);
+                        this.state.doubleClick[ btn ].push([ x, y, Date.now(), timeout ]);
                     } else {
                         this.state.doubleClick[ btn ] = [];
     
@@ -200,15 +224,16 @@ export default class MouseNode extends Node {
                             }
                         }, this.config.doubleClick.timeout);
                         
-                        this.state.doubleClick[ btn ].push([ e.x, e.y, Date.now(), timeout ]);
+                        this.state.doubleClick[ btn ].push([ x, y, Date.now(), timeout ]);
                     }
                 }
             },
             end: (e) => {
+                const { x, y } = this.getRelativePosition(e);
                 const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
                 
                 if(btn) {
-                    this.state.doubleClick[ btn ].push([ e.x, e.y, Date.now() ]);
+                    this.state.doubleClick[ btn ].push([ x, y, Date.now() ]);
 
                     if(this.state.doubleClick[ btn ].length === 4) {
                         const [ [ x0, y0, t0 ], [ x1, y1, t1 ] ] = this.state.doubleClick[ btn ];
@@ -217,8 +242,8 @@ export default class MouseNode extends Node {
                         const dt = t1 - t0;
     
                         if(dt <= this.config.doubleClick.timeout && (Math.abs(dx) <= this.config.doubleClick.threshold && Math.abs(dy) <= this.config.doubleClick.threshold)) {
-                            this.dispatch(EnumEventType.MOUSE_DOUBLE_CLICK, {
-                                type: EnumEventType.MOUSE_DOUBLE_CLICK,
+                            this.dispatch(EnumMessageType.MOUSE_DOUBLE_CLICK, {
+                                mask: this.state.mask.current,
                                 button: btn,
                                 start: {
                                     x: x0,
@@ -239,11 +264,12 @@ export default class MouseNode extends Node {
     get _selection() {
         return {
             begin: (e) => {
+                const { x, y } = this.getRelativePosition(e);
                 const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
 
                 if(btn) {
                     this.state.selection[ btn ] = [];
-                    this.state.selection[ btn ].push([ e.x, e.y, Date.now() ]);
+                    this.state.selection[ btn ].push([ x, y, Date.now() ]);
 
                     setTimeout(() => {
                         if(this.state.selection[ btn ].length) {
@@ -253,10 +279,11 @@ export default class MouseNode extends Node {
                 }
             },
             end: (e) => {
+                const { x, y } = this.getRelativePosition(e);
                 const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
                 
                 if(btn) {
-                    this.state.selection[ btn ].push([ e.x, e.y, Date.now() ]);
+                    this.state.selection[ btn ].push([ x, y, Date.now() ]);
 
                     if(this.state.selection[ btn ].length === 2) {
                         const [ [ x0, y0, t0 ], [ x1, y1, t1 ] ] = this.state.selection[ btn ];
@@ -265,7 +292,8 @@ export default class MouseNode extends Node {
                         const dt = t1 - t0;
 
                         if(dt <= this.config.selection.timeout && (Math.abs(dx) >= this.config.selection.threshold && Math.abs(dy) >= this.config.selection.threshold)) {
-                            this.dispatch(EnumEventType.MOUSE_SELECTION, {
+                            this.dispatch(EnumMessageType.MOUSE_SELECTION, {
+                                mask: this.state.mask.current,
                                 button: btn,
                                 start: {
                                     x: x0,
@@ -288,11 +316,12 @@ export default class MouseNode extends Node {
     get _swipe() {
         return {
             begin: (e) => {
+                const { x, y } = this.getRelativePosition(e);
                 const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
 
                 if(btn) {
                     this.state.swipe[ btn ] = [];
-                    this.state.swipe[ btn ].push([ e.x, e.y, Date.now() ]);
+                    this.state.swipe[ btn ].push([ x, y, Date.now() ]);
 
                     setTimeout(() => {
                         if(this.state.swipe[ btn ].length) {
@@ -302,10 +331,11 @@ export default class MouseNode extends Node {
                 }
             },
             end: (e) => {
+                const { x, y } = this.getRelativePosition(e);
                 const btn = e.which === 1 ? "left" : (e.which === 2 ? "middle" : (e.which === 3 ? "right" : null));
                 
                 if(btn) {
-                    this.state.swipe[ btn ].push([ e.x, e.y, Date.now() ]);
+                    this.state.swipe[ btn ].push([ x, y, Date.now() ]);
 
                     if(this.state.swipe[ btn ].length === 2) {
                         const [ [ x0, y0, t0 ], [ x1, y1, t1 ] ] = this.state.swipe[ btn ];
@@ -330,7 +360,8 @@ export default class MouseNode extends Node {
                                 }
                             }
 
-                            this.dispatch(EnumEventType.MOUSE_SWIPE, {
+                            this.dispatch(EnumMessageType.MOUSE_SWIPE, {
+                                mask: this.state.mask.current,
                                 button: btn,
                                 start: {
                                     x: x0,
@@ -357,8 +388,15 @@ export default class MouseNode extends Node {
     onMouseDown(e) {
         e.preventDefault();
 
+        const { x, y } = this.getRelativePosition(e);
+
         this.updateMask(e, true);
-        this.dispatch(EnumEventType.MOUSE_DOWN, e);
+        this.dispatch(EnumMessageType.MOUSE_DOWN, {
+            mask: this.state.mask.current,
+            x: x,
+            y: y,
+            event: e,
+        });
 
         this._click.begin(e);
         this._selection.begin(e);
@@ -368,8 +406,15 @@ export default class MouseNode extends Node {
     onMouseUp(e) {
         e.preventDefault();
 
+        const { x, y } = this.getRelativePosition(e);
+
         this.updateMask(e, false);
-        this.dispatch(EnumEventType.MOUSE_UP, e);
+        this.dispatch(EnumMessageType.MOUSE_UP, {
+            mask: this.state.mask.current,
+            x: x,
+            y: y,
+            event: e,
+        });
 
         this._click.end(e);
         this._selection.end(e);
@@ -378,19 +423,38 @@ export default class MouseNode extends Node {
     }
     onMouseMove(e) {
         e.preventDefault();
+        
+        const { x, y } = this.getRelativePosition(e);
 
         if(this.config.moveRequiresButton === true) {
             if(e.buttons > 0) {
-                this.dispatch(EnumEventType.MOUSE_MOVE, e);
+                this.dispatch(EnumMessageType.MOUSE_MOVE, {
+                    mask: this.state.mask.current,
+                    x: x,
+                    y: y,
+                    event: e,
+                });
             }
         } else {
-            this.dispatch(EnumEventType.MOUSE_MOVE, e);
+            this.dispatch(EnumMessageType.MOUSE_MOVE, {
+                mask: this.state.mask.current,
+                x: x,
+                y: y,
+                event: e,
+            });
         }
     }
     onContextMenu(e) {
         e.preventDefault();
+        
+        const { x, y } = this.getRelativePosition(e);
 
-        this.dispatch(EnumEventType.MOUSE_CONTEXT_MENU, e);
+        this.dispatch(EnumMessageType.MOUSE_CONTEXT_MENU, {
+            mask: this.state.mask.current,
+            x: x,
+            y: y,
+            event: e,
+        });
     }
 }
 

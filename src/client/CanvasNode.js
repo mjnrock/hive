@@ -1,4 +1,6 @@
-export const EnumEventType = {
+import Node from "./../Node";
+
+export const EnumMessageType = {
     RENDER: "CanvasNode.Render",
 };
 
@@ -43,6 +45,9 @@ export default class CanvasNode extends Node {
         ];
     }
 
+    img(key) {
+        return this.images[ key ];
+    }
     get images() {
         return this.state.images;
     }
@@ -56,6 +61,18 @@ export default class CanvasNode extends Node {
             this.canvas.width = width;
             this.canvas.height = height;
         }
+
+        return this;
+    }
+
+    //* "Chainable" abstractions to allow a series of calls to be made before a context reset
+    begin() {
+        this.ctx.save();
+
+        return this;
+    }
+    end() {
+        this.ctx.restore();
 
         return this;
     }
@@ -78,7 +95,7 @@ export default class CanvasNode extends Node {
             } else if(typeof imageOrSrc === "string" || imageOrSrc instanceof String) {
                 let img = new Image();
                 img.onload = e => {
-                    this.state.images[ name ] = imageOrSrc;
+                    this.state.images[ name ] = img;
 
                     resolve(this);
                 }
@@ -116,7 +133,7 @@ export default class CanvasNode extends Node {
     onRender(ts) {
         const dt = ts - this.config.lastTimestamp;
 
-        this.dispatch(EnumEventType.RENDER, {
+        this.dispatch(EnumMessageType.RENDER, {
             timestamp: ts,
             delta: dt,
             canvas: this.canvas,
@@ -292,18 +309,26 @@ export default class CanvasNode extends Node {
 
     image(imageOrSrc, ...args) {
         return new Promise((resolve, reject) => {
-            if(imageOrSrc instanceof HTMLImageElement) {
+            if(imageOrSrc instanceof HTMLImageElement || imageOrSrc instanceof HTMLCanvasElement) {
+                // Synchronously draw if <img> or <canvas>
                 this.ctx.drawImage(imageOrSrc, ...args);
 
                 resolve(this);
             } else if(typeof imageOrSrc === "string" || imageOrSrc instanceof String) {
-                let img = new Image();
-                img.onload = e => {
-                    this.ctx.drawImage(img, ...args);
+                if(imageOrSrc in this.images) {
+                    // Synchronously draw if @imageOrSrc is a key in this.images (i.e. a cached image)
 
-                    resolve(this);
+                    this.ctx.drawImage(this.images[ imageOrSrc ], ...args);
+                } else {
+                    // Asynchronously draw if @imageOrSrc is a "src" string
+                    let img = new Image();
+                    img.onload = e => {
+                        this.ctx.drawImage(img, ...args);
+    
+                        resolve(this);
+                    }
+                    img.src = imageOrSrc;
                 }
-                img.src = imageOrSrc;
             } else {
                 reject(this);
             }

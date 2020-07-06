@@ -59,7 +59,7 @@ export default class Node extends EventEmitter {
     }
 
     mergeState(state = {}) {
-        this._state = {
+        this.state = {
             ...this._state,
             ...state,
         };
@@ -259,9 +259,25 @@ export default class Node extends EventEmitter {
         this.dispatch(EnumEventType.PING, this.state);
     }
 
-    addEffect(fn) {
-        if(typeof fn === "function") {
-            this._effects.add(fn);
+    addEffect() {
+        if(arguments.length === 1) {
+            const [ effect ] = arguments;
+
+            if(typeof effect === "function") {
+                this._effects.add(effect.bind(this));
+            }
+        } else if(arguments.length === 2) {
+            const [ type, effect ] = arguments;
+            
+            if(typeof effect === "function") {
+                this._effects.add((state, msg) => {
+                    if(msg.type === type) {
+                        return effect.call(this, state, msg);
+                    }
+
+                    return state;
+                });
+            }
         }
 
         return this;
