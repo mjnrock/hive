@@ -1,5 +1,5 @@
 import Node from "./../Node";
-import { Bitwise } from "./Helper";
+import { Bitwise } from "./../ext/Helper";
 
 export const EnumMessageType = {
     KEY_MASK: "KeyNode.Mask",
