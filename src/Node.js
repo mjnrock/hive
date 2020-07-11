@@ -19,7 +19,7 @@ export default class Node extends EventEmitter {
         this._state = state;
         this._governor = governor;
         this._reducers = reducers;
-        this._effects = new Set(effects);
+        this._effects = effects;
         this._config = {
             isSelfMessaging: true,
             allowCommands: false,
@@ -130,7 +130,7 @@ export default class Node extends EventEmitter {
                 this.after.call(this, this.state, msg);
             }
 
-            for(let effect of [ ...this._effects ]) {
+            for(let effect of this._effects) {
                 if(typeof effect === "function") {
                     effect.call(this, this.state, msg);
                 }
@@ -259,32 +259,14 @@ export default class Node extends EventEmitter {
         this.dispatch(EnumEventType.PING, this.state);
     }
 
-    addEffect() {
-        if(arguments.length === 1) {
-            const [ effect ] = arguments;
-
-            if(typeof effect === "function") {
-                this._effects.add(effect.bind(this));
-            }
-        } else if(arguments.length === 2) {
-            const [ type, effect ] = arguments;
-            
-            if(typeof effect === "function") {
-                this._effects.add((state, msg) => {
-                    if(msg.type === type) {
-                        return effect.call(this, state, msg);
-                    }
-
-                    return state;
-                });
-            }
+    addEffect(fn) {
+        if(typeof fn === "function") {
+            this._effects.push(fn);
         }
-
-        return this;
     }
     removeEffect(fn) {
         if(typeof fn === "function") {
-            this._effects.delete(fn);
+            this._effects = this._effects.filter(f => f !== fn);
         }
 
         return this;
