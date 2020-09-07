@@ -5,15 +5,18 @@ export const EnumMessageType = {
 };
 
 export default class CanvasNode extends Node {
-    constructor({ state = {}, config = {}, width, height } = {}) {
+    constructor({ state = {}, config = {}, width, height, canvas } = {}) {
         super({
-            canvas: document.createElement("canvas"),
+            canvas: canvas || document.createElement("canvas"),
             images: {},
             
             ...state,
         });
 
         this.mergeConfig({
+            normalization: {
+                arc: -Math.PI / 4,
+            },
             isPlaying: false,
             lastTimestamp: 0,
             fps: 0,
@@ -27,6 +30,11 @@ export default class CanvasNode extends Node {
     get canvas() {
         return this.state.canvas;
     }
+    set canvas(canvas) {
+        return this.mergeState({
+            canvas,
+        });
+    }
     get ctx() {
         return this.state.canvas.getContext("2d");
     }
@@ -34,8 +42,15 @@ export default class CanvasNode extends Node {
     get width() {
         return this.canvas.width;
     }
+    set width(value) {
+        this.canvas.width = value;
+    }
+    
     get height() {
         return this.canvas.height;
+    }
+    set height(value) {
+        this.canvas.height = value;
     }
 
     get center() {
@@ -54,6 +69,9 @@ export default class CanvasNode extends Node {
 
     get fps() {
         return this.config.fps;
+    }
+    set fps(fps) {
+        this.config.fps = fps;
     }
 
     resize(width, height) {
@@ -108,9 +126,13 @@ export default class CanvasNode extends Node {
         });
     }
     loadImages(arr = []) {
+        let promises = [];
+
         for(let imgArr of arr) {
-            this.loadImage(...(imgArr || []));
+            promises.push(this.loadImage(...(imgArr || [])));
         }
+
+        return Promise.all(promises);
     }
 
     play() {
@@ -123,26 +145,26 @@ export default class CanvasNode extends Node {
     
     render() {
         if(this.config.isActive === true) {
-            window.requestAnimationFrame((ts) => {
-                this.onRender(ts);
+            window.requestAnimationFrame((ts) => {                
+                const dt = Math.min(ts - this.config.lastTimestamp, 1000 / 10);   // Create a 10fps floor
+
+                this.onRender(dt);
+
+                this.dispatch(EnumMessageType.RENDER, {
+                    timestamp: ts,
+                    delta: dt,
+                    canvas: this.canvas,
+                    ctx: this.ctx,
+                });
+
+                this.config.fps = 1000 / dt;
+                this.config.lastTimestamp = ts;
                 
                 this.render();
             });
         }
     }
-    onRender(ts) {
-        const dt = ts - this.config.lastTimestamp;
-
-        this.dispatch(EnumMessageType.RENDER, {
-            timestamp: ts,
-            delta: dt,
-            canvas: this.canvas,
-            ctx: this.ctx,
-        });
-
-        this.config.fps = 1000 / dt;
-        this.config.lastTimestamp = ts;
-    }
+    onRender(dt) {}
 
     // Get a stream of the current canvas
     getStream(fps = 10) {
@@ -197,7 +219,51 @@ export default class CanvasNode extends Node {
         this.ctx.fillStyle = pBgColor;
     }
 
+    degToRad(...degrees) {
+        if(degrees.length > 1) {
+            const arr = [];
+
+            for(let deg of degrees) {
+                arr.push((deg * Math.PI / 180) + this.config.normalization.arc);
+            }
+
+            return arr;
+        }
+
+        return (degrees[ 0 ] * Math.PI / 180) + this.config.normalization.arc;
+    }
+    radToDeg(...radians) {
+        if(radians.length > 1) {
+            const arr = [];
+
+            for(let rad of radians) {
+                arr.push((rad + this.config.normalization.arc) * 180 / Math.PI);
+            }
+
+            return arr;
+        }
+
+        return (radians[ 0 ] + this.config.normalization.arc) * 180 / Math.PI;
+    }
+
     //* Shape methods
+    arc(x, y, r, s = 0, e = Math.PI * 2, { isFilled = false } = {}) {
+        if(isFilled) {
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, r, s + this.config.normalization.arc, e + this.config.normalization.arc);
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.stroke();
+        } else {
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, r, s + this.config.normalization.arc, e + this.config.normalization.arc);
+            this.ctx.closePath();
+            this.ctx.stroke();
+        }
+
+        return this;
+    }
+
     circle(x, y, r, { isFilled = false } = {}) {
         if(isFilled) {
             this.ctx.beginPath();
@@ -285,6 +351,20 @@ export default class CanvasNode extends Node {
         } else {
             this.ctx.stroke();
         }
+
+        return this;
+    }
+
+    triangle(p0 = [], p1 = [], p2 = []) {
+        if(arguments.length === 6) {
+            p0 = [ arguments[ 0 ], arguments[ 1 ] ];
+            p1 = [ arguments[ 2 ], arguments[ 3 ] ];
+            p2 = [ arguments[ 4 ], arguments[ 5 ] ];
+        }
+
+        this.line(...p0, ...p1);
+        this.line(...p1, ...p2);
+        this.line(...p2, ...p0);
 
         return this;
     }

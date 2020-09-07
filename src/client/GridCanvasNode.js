@@ -7,7 +7,7 @@ export const EnumMessageType = {};
  * For Example: if rect(25,25,50,50) and tiles are 25x25, then gRect(1,1,2,2)
  */
 export default class GridCanvasNode extends CanvasNode {
-    constructor({ state = {}, config = {}, width, height, size } = {}) {
+    constructor({ state = {}, config = {}, width, height, size, draw } = {}) {
         super({ state, config, width, height });
 
         this.mergeState({
@@ -16,6 +16,10 @@ export default class GridCanvasNode extends CanvasNode {
                 height: size[ 1 ],
             }
         });
+
+        if(typeof draw === "function") {
+            this.draw = draw.bind(this);
+        }
     }
 
     get tw() {
@@ -74,6 +78,7 @@ export default class GridCanvasNode extends CanvasNode {
         };
     }
 
+    draw() {}
     drawGrid({ fillStyle = "#000" } = {}) {
         this.prop({ fillStyle });
 
@@ -120,6 +125,13 @@ export default class GridCanvasNode extends CanvasNode {
         const [[ tx, tw ], [ ty, th ]] = this.pixelToGrid([ x, w ], [ y, h ], { round, asArray: true });
 
         this.rect(tx, ty, tw, th, { isFilled });
+
+        return this;
+    }
+    gCircle(x, y, r, { isFilled = false, round } = {}) {
+        const [[ tx ], [ ty ]] = this.pixelToGrid([ x ], [ y ], { round, asArray: true });
+        
+        this.circle(tx, ty, r, { isFilled });
 
         return this;
     }
