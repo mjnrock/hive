@@ -46,7 +46,7 @@ export const EnumActionFlags = {
     }
 };
 
-export default class MouseNode extends Hive.Node {
+export default class MouseNode extends Node {
     constructor({ element, state = {}, config = {}, ignore = [], only = [] } = {}) {
         super({
             map: [
