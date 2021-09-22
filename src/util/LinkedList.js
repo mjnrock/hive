@@ -30,7 +30,22 @@ export default class LinkedList {
 		}
 		
 		return curr;
-	}
+    }
+    
+    value(index) {
+        const lln = this.get(index);
+
+        if(lln instanceof LinkedListNode) {
+            return lln;
+        }
+    }
+    set(index, value) {
+        const lln = this.get(index);
+
+        if(lln instanceof LinkedListNode) {
+            lln._data = value;
+        }
+    }
 
 	add(value) {
 		let node = new LinkedListNode(value);

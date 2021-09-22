@@ -1,6 +1,8 @@
 import Node from "./../Node";
 import { Bitwise } from "./../ext/Helper";
 
+//FIXME CHORD continues to add "true" to the hasExpired array on a continued press
+
 export const EnumMessageType = {
     KEY_MASK: "KeyNode.Mask",
     KEY_DOWN: "KeyNode.Down",
