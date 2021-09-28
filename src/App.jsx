@@ -1,6 +1,8 @@
+import "tachyons/src/tachyons.css";	
+
 function App() {
 	return (
-		<div>Hello</div>
+		<div className="f1">Hello</div>
 	);
 }
 
