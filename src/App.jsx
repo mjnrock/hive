@@ -1,8 +1,23 @@
+import React from "react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+
+import Routes from "./routes/package";
+
 import "tachyons/src/tachyons.css";	
+
+export const Context = React.createContext();
 
 function App() {
 	return (
-		<div className="f1">Hello</div>
+        <Context.Provider value={{ state: true }}>
+            <Router>
+                <Switch>
+                    <Route path={ `/` }>
+                        <Routes.Default />
+                    </Route>
+                </Switch>
+            </Router>
+        </Context.Provider>
 	);
 }
 
