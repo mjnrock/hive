@@ -1,27 +1,25 @@
 import React from "react";
-import "aframe";
-import { Entity, Scene } from "aframe-react";
 
 import { Context } from "./../App";
 
-export function Default() {
-	return (
-		<div>
-			<div className="f1">Hello</div>
+import Tags from "./../lib/tags/package";
 
-			<Scene>
-				<Entity light={{ type: "point" }} />
-				{/* <Entity gltf-model={{ src: "virtualcity.gltf" }} /> */}
-				<Entity
-					text={{ value: "Hello, WebVR!" }}
-					position={{ x: 150, y: 150, z: 0 }}
-				/>
-				{/* <Entity
-					geometry={{ primitive: "box" }}
-					material={{ color: "red" }}
-					position={{ x: 0, y: 0, z: -5 }}
-				/> */}
-			</Scene>
+export function Default() {
+	const tag = new Tags.Tag("byte", 1234, {
+		hasMeta: true,
+	});
+
+	return (
+		<div style={{ fontFamily: "monospace" }}>
+			<div className="f1 tc">Tag Sandbox</div>
+			<hr />
+
+			<div className="f3 ma2 pa1 b black-80">Test Tag</div>
+			<pre className="ma2 pa1 ba br2 b--black-10 bg-black-10 shadow-4 black-80">
+			{
+				JSON.stringify(tag, null, 2)	
+			}
+			</pre>
 		</div>
 	);
 }
