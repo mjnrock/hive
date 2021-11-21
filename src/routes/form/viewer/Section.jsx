@@ -17,7 +17,7 @@ export function Section(props = {}) {
 	}
 
 	return (
-		<div className="b ba br2 ma3 pa2" onClick={ bubble }>
+		<div className="b ba br2 ma3 pa2 bg-light-green" onClick={ bubble }>
 			<Meta meta={ section.meta } level="section" />
 
 			<ul>

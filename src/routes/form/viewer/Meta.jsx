@@ -14,7 +14,7 @@ export function Meta({ meta = {}, level = "element" } = {}) {
 	}
 
 	if(meta.description) {
-		elements.push(<textarea value={ meta.description } />);
+		elements.push(<textarea className="w-100 h3 no-resize ml2" defaultValue={ meta.description } readOnly={ true }/>);
 	}
 
 	return elements.map((e, i) => React.cloneElement(e, { key: i, ...e.props }));

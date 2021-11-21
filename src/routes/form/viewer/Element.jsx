@@ -10,7 +10,7 @@ export function Element(props = {}) {
 	}
 	
 	return (
-		<div className="b ba br2 ma1" onClick={ bubble }>
+		<div className="b ba br2 ma1 bg-green" onClick={ bubble }>
 			{
 				JSON.stringify(element.data, null, 2)
 			}

@@ -16,7 +16,7 @@ export function Form(props = {}) {
 	}
 
 	return (
-		<div className="b ba br2">
+		<div className="b ba br2 bg-blue">
 			<Meta meta={ form.meta } level="form" />
 
 			{

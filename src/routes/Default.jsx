@@ -28,6 +28,7 @@ const FormTest = {
 			meta: {
 				id: 12345,
 				name: `Test Section`,
+				description: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem ex adipisci dolores nostrum officiis iste ratione magnam sit temporibus delectus in quidem quia quod animi inventore, maxime vitae ullam soluta?`,
 			},
 		},
 		{
@@ -53,6 +54,7 @@ const FormTest = {
 									meta: {
 										id: 12345,
 										name: `Test Section`,
+										description: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem ex adipisci dolores nostrum officiis iste ratione magnam sit temporibus delectus in quidem quia quod animi inventore, maxime vitae ullam soluta?`,
 									},
 								},
 							],
@@ -73,12 +75,14 @@ const FormTest = {
 			meta: {
 				id: 12345,
 				name: `Test Section`,
+				description: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem ex adipisci dolores nostrum officiis iste ratione magnam sit temporibus delectus in quidem quia quod animi inventore, maxime vitae ullam soluta?`,
 			},
 		},
 	],
 	meta: {
 		id: 12345,
 		name: `Test Form`,
+		description: `Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem ex adipisci dolores nostrum officiis iste ratione magnam sit temporibus delectus in quidem quia quod animi inventore, maxime vitae ullam soluta?`,
 	},
 };
 console.log(Form.FromSchema(FormTest))
