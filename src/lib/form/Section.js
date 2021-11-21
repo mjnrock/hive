@@ -29,11 +29,12 @@ export class Section {
 		if("elements" in obj) {
 			const elements = [];
 			for(let element of obj.elements) {
-				// if(Element.Conforms(element)) {
-				// 	elements.push(Element.FromSchema(element));
-				// }
+				if(typeof element === "object" && Section.Conforms(element)) {
+					elements.push(Section.FromSchema(element));
+				} else {
+					elements.push(new Element(element));
+				}
 
-				elements.push(new Element(element));
 			}
 
 			return new Section(elements, { meta: obj.meta });

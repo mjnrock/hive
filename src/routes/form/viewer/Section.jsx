@@ -1,6 +1,8 @@
 
 import React, { useState } from "react";
 
+import FormSection from "./../../../lib/form/Section";
+
 import Meta from "./Meta";
 import Element from "./Element";
 
@@ -20,6 +22,17 @@ export function Section(props = {}) {
 			<ul>
 				{
 					section.elements.map((element, i) => {
+						if(element instanceof FormSection) {
+							return (
+								<li key={ i }>
+									<Section
+										section={ element }	
+										handler={ bubble }
+									/>
+								</li>
+							);
+						}
+
 						return (
 							<li key={ i }>
 								<Element
