@@ -11,6 +11,7 @@ export function Section(props = {}) {
 
 	function bubble(e, element) {
 		if(typeof props.handler === "function") {
+			//TODO	Maintain a set for { section } for nested sections
 			props.handler(e, { section, element });
 		}
 	}
