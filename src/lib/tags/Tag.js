@@ -11,7 +11,7 @@ HOOKS: {
 */
 
 //TODO Everything here is templatized for starters -- 64bit stuff or higher isn't valid code, but rather references atm
-export const primitivesObj = {
+export const tagTemplate = {
 	EMPTY: {},
 	COMPOUND: {},
 
@@ -90,45 +90,11 @@ export const primitivesObj = {
 	COLLECTION: {},
 };
 
-export const primitives = [
-	"EMPTY",
-	"COMPOUND",
-
-	"BOOL",
-	"UINT8",
-	"UINT16",
-	"UINT32",
-	"UINT64",
-	"INT8",
-	"INT16",
-	"INT32",
-	"INT64",
-	"FLOAT",
-	"DOUBLE",
-	"NUMERIC",
-	"CHAR",
-	"STRING",
-	"JSON",
-	
-	"ENUM",
-	"ARRAY",
-	"OBJECT",
-	"FUNCTION",
-	"CLASS",
-	
-	"SCHEMA",
-	"NAMESPACE",
-	"DATASET",
-	"COLLECTION",
-];
-
 function seed() {
 	const obj = {};
 
-	for(let i = 0; i < primitives.length; i++) {
-		const primitive = primitives[ i ];
-
-		obj[ primitive ] = i;
+	for(let key in tagTemplate) {
+		obj[ key.toUpperCase() ] = key.toLowerCase();
 	}
 
 	return obj;
@@ -146,11 +112,10 @@ export class Tag {
 		},
 	};
 
-	constructor(type, data, { meta = {}, name, id = uuid(), hooks = {} } = {}) {		
+	constructor(type, data, { meta = {}, id = uuid(), hooks = {} } = {}) {
 		this.type = type;
 		this.meta = {
 			id,
-			name: name || id,
 			hooks,
 			...meta,
 		};
@@ -178,9 +143,6 @@ export class Tag {
 					}
 					
 					let newData = value;
-					console.log("-----")
-					console.log(target.meta.hooks)
-					console.log("-----")
 					if(typeof target.meta.hooks[ "=" ] === "function") {
 						newData = target.meta.hooks[ "=" ](value, target.data, [ target ]);
 					} else if(typeof target.meta.hooks[ "#" ] === "function") {
@@ -221,16 +183,16 @@ export class Tag {
 	}
 };
 
-primitives.forEach(name => {
+Object.keys(tagTemplate).forEach(name => {
 	let fnName = name.charAt(0) + name.slice(1).toLowerCase();
 
 	Tag[ `${ fnName }` ] = (data, obj = {}) => {
 		obj.hooks = {
 			...(obj.hooks || {}),
-			...primitivesObj[ name ],
+			...tagTemplate[ name ],
 		};
-		
-		return new Tag(Tag.EnumType[ name ], data, { ...obj });
+
+		return new Tag(Tag.EnumType[ name.toUpperCase() ], data, { ...obj });
 	};
 });
 
