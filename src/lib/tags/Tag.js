@@ -95,6 +95,10 @@ export const primitives = [
 	"COMPOUND",
 
 	"BOOL",
+	"UINT8",
+	"UINT16",
+	"UINT32",
+	"UINT64",
 	"INT8",
 	"INT16",
 	"INT32",
@@ -142,58 +146,70 @@ export class Tag {
 		},
 	};
 
-	constructor(type, data, { meta = {}, name, id = uuid(), hooks = {} } = {}) {
+	constructor(type, data, { meta = {}, name, id = uuid(), hooks = {} } = {}) {		
 		this.type = type;
-		this._data = data;
 		this.meta = {
 			id,
 			name: name || id,
 			hooks,
 			...meta,
 		};
-	}
 
-	get data() {
-		return this._data;
-	}
-	set data(input) {
-		if(typeof this.meta.hooks[ "*" ] === "function") {
-			let result = this.meta.hooks[ "*" ](input, this.data, [ this ]);
+		const proxy = new Proxy(this, {
+			get(target, prop) {
+				return Reflect.get(target, prop);
+			},
+			set(target, prop, value) {
+				if(prop === "data") {
+					if(typeof target.meta.hooks[ "*" ] === "function") {
+						let result = target.meta.hooks[ "*" ](value, target.data, [ target ]);
+			
+						if(result !== void 0) {
+							value = result;		// Reshape @input if the pre hook returns something
+						}
+					}
+					
+					if(typeof target.meta.hooks[ "@" ] === "function") {
+						let result = target.meta.hooks[ "@" ](value, target.data, [ target ]);
+			
+						if(result !== true) {
+							return;		// Exit if there is a validator and it didn't return TRUE
+						}
+					}
+					
+					let newData = value;
+					console.log("-----")
+					console.log(target.meta.hooks)
+					console.log("-----")
+					if(typeof target.meta.hooks[ "=" ] === "function") {
+						newData = target.meta.hooks[ "=" ](value, target.data, [ target ]);
+					} else if(typeof target.meta.hooks[ "#" ] === "function") {
+						newData = target.meta.hooks[ "#" ](value, target.data, [ target ]);
+			
+						if(typeof target.data === "object" && typeof newData === "object") {
+							newData = {
+								...target.data,
+								...newData,
+							};
+						}
+					}
 
-			if(result !== void 0) {
-				input = result;		// Reshape @input if the pre hook returns something
-			}
-		}
+					let returnVal = Reflect.set(target, prop, newData);
 		
-		if(typeof this.meta.hooks[ "@" ] === "function") {
-			let result = this.meta.hooks[ "@" ](input, this.data, [ this ]);
+					if(typeof target.meta.hooks[ "**" ] === "function") {
+						target.meta.hooks[ "**" ](target.data, [ target ]);
+					}
+					
+					return returnVal;
+				}
+				
+				return Reflect.set(target, prop, value);
+			},
+		});
 
-			if(result !== true) {
-				return;		// Exit if there is a validator and it didn't return TRUE
-			}
-		}
-		
-		let newData = input;
-		if(typeof this.meta.hooks[ "=" ] === "function") {
-			newData = this.meta.hooks[ "=" ](input, this.data, [ this ]);
-		} else if(typeof this.meta.hooks[ "#" ] === "function") {
-			newData = this.meta.hooks[ "#" ](input, this.data, [ this ]);
+		proxy.data = data;
 
-			if(typeof this.data === "object" && typeof newData === "object") {
-				newData = {
-					...this.data,
-					...newData,
-				};
-			}
-		}
-
-		if(newData !== void 0 && newData !== this.data) {
-			this._data = newData;
-		}
-		
-		if(typeof this.meta.hooks[ "**" ] === "function") {
-			this.meta.hooks[ "**" ](this.data, [ this ]);
-		}
+		return proxy;
 	}
 
 	static FromSchema(obj = {}) {
@@ -208,7 +224,14 @@ export class Tag {
 primitives.forEach(name => {
 	let fnName = name.charAt(0) + name.slice(1).toLowerCase();
 
-	Tag[ `${ fnName }` ] = (data, obj = {}) => new Tag(Tag.EnumType[ name ], data, { ...obj });
+	Tag[ `${ fnName }` ] = (data, obj = {}) => {
+		obj.hooks = {
+			...(obj.hooks || {}),
+			...primitivesObj[ name ],
+		};
+		
+		return new Tag(Tag.EnumType[ name ], data, { ...obj });
+	};
 });
 
 export default Tag;
