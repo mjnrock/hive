@@ -11,9 +11,17 @@ HOOKS: {
 */
 
 //TODO Everything here is templatized for starters -- 64bit stuff or higher isn't valid code, but rather references atm
-export const tagTemplate = {
-	EMPTY: {},
-	COMPOUND: {},
+export const contextPrimitives = {
+	EMPTY: {		
+		"=": input => void 0,
+	},
+	NULL: {
+		"=": input => null,
+	},
+	ANY: {
+		"=": input => input,
+		"@": input => true,
+	},
 
 	BOOL: {
 		"=": input => !!input,
@@ -67,7 +75,8 @@ export const tagTemplate = {
 		"=": input => typeof input === "object" ? input.toJson() : input.toString(),
 		"@": input => typeof input === "string" || typeof input === "object",
 	},
-	
+		
+	COMPOUND: {},
 	ENUM: {
 		"@": input => Array.isArray(input),
 	},
@@ -93,19 +102,19 @@ export const tagTemplate = {
 function seed() {
 	const obj = {};
 
-	for(let key in tagTemplate) {
+	for(let key in contextPrimitives) {
 		obj[ key.toUpperCase() ] = key.toLowerCase();
 	}
 
 	return obj;
 }
-export class Tag {
+export class Context {
 	static EnumType = {
 		...seed(),
 
 		fromValue(value) {
-			for(let key in Tag.EnumType) {
-				if(Tag.EnumType[ key ] === value) {
+			for(let key in Context.EnumType) {
+				if(Context.EnumType[ key ] === value) {
 					return key;
 				}
 			}
@@ -176,24 +185,24 @@ export class Tag {
 
 	static FromSchema(obj = {}) {
 		if("type" in obj && ("data" in obj || "_data" in obj)) {
-			return new Tag(obj.type, obj._data !== void 0 ? obj._data : obj.data, { meta: obj.meta });
+			return new Context(obj.type, obj._data !== void 0 ? obj._data : obj.data, { meta: obj.meta });
 		}
 
-		return new Tag(Tag.EnumType.EMPTY);
+		return new Context(Context.EnumType.EMPTY);
 	}
 };
 
-Object.keys(tagTemplate).forEach(name => {
+Object.keys(contextPrimitives).forEach(name => {
 	let fnName = name.charAt(0) + name.slice(1).toLowerCase();
 
-	Tag[ `${ fnName }` ] = (data, obj = {}) => {
+	Context[ `${ fnName }` ] = (data, obj = {}) => {
 		obj.hooks = {
 			...(obj.hooks || {}),
-			...tagTemplate[ name ],
+			...contextPrimitives[ name ],
 		};
 
-		return new Tag(Tag.EnumType[ name.toUpperCase() ], data, { ...obj });
+		return new Context(Context.EnumType[ name.toUpperCase() ], data, { ...obj });
 	};
 });
 
-export default Tag;
+export default Context;
