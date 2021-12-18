@@ -12,85 +12,131 @@ HOOKS: {
 
 //TODO Everything here is templatized for starters -- 64bit stuff or higher isn't valid code, but rather references atm
 export const contextPrimitives = {
-	EMPTY: {		
-		"=": input => void 0,
+	EMPTY: {
+		hooks: {
+			"=": input => void 0,
+		},
 	},
 	NULL: {
-		"=": input => null,
+		hooks: {
+			"=": input => null,
+		},
 	},
 	ANY: {
-		"=": input => input,
-		"@": input => true,
+		hooks: {
+			"=": input => input,
+			"@": input => true,
+		},
 	},
 
 	BOOL: {
-		"=": input => !!input,
+		hooks: {
+			"=": input => !!input,
+		},
 	},
 
 	UINT8: {
-		"=": input => Math.max(0, Math.min(255, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(0, Math.min(255, ~~input)),
+		},
 	},
 	UINT16: {
-		"=": input => Math.max(0, Math.min(65535, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(0, Math.min(65535, ~~input)),
+		},
 	},
 	UINT32: {
-		"=": input => Math.max(0, Math.min(4294967295, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(0, Math.min(4294967295, Math.floor(parseFloat(input)))),
+		},
 	},
 	UINT64: {
-		"=": input => Math.max(0, Math.min(18446744073709551615, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(0, Math.min(18446744073709551615n, BigInt(input))),
+		},
 	},
 
 	INT8: {
-		"=": input => Math.max(-255, Math.min(255, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(-255, Math.min(255, ~~input)),
+		},
 	},
 	INT16: {
-		"=": input => Math.max(-32768, Math.min(32767, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(-32768, Math.min(32767, ~~input)),
+		},
 	},
 	INT32: {
-		"=": input => Math.max(-2147483648, Math.min(2147483647, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(-2147483648, Math.min(2147483647, ~~input)),
+		},
 	},
 	INT64: {
-		"=": input => Math.max(-9223372036854775808, Math.min(9223372036854775807, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(-9223372036854775808n, Math.min(9223372036854775807n, BigInt(input))),
+		},
 	},
 
 	FLOAT: {
-		"=": input => Math.max(-3.40282347E+38, Math.min(3.40282347E+38, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(-3.40282347E+38, Math.min(3.40282347E+38, BigInt(input))),
+		},
 	},
 	DOUBLE: {
-		"=": input => Math.max(-1.7976931348623157E+308, Math.min(1.7976931348623157E+308, parseFloat(input))),
+		hooks: {
+			"=": input => Math.max(-1.7976931348623157E+308, Math.min(1.7976931348623157E+308, BigInt(input))),
+		},
 	},
 	NUMERIC: {
-		"=": input => parseFloat(input),
+		hooks: {
+			"=": input => parseFloat(input),
+		},
 	},
 	
 	CHAR: {
-		"=": input => input.toString().charAt(0),
-		"@": input => typeof input === "string" || typeof input === "number",
+		hooks: {
+			"=": input => input.toString().charAt(0),
+			"@": input => typeof input === "string" || typeof input === "number",
+		},
 	},
 	STRING: {
-		"=": input => input.toString(),
-		"@": input => typeof input === "string" || typeof input === "number",
+		hooks: {
+			"=": input => input.toString(),
+			"@": input => typeof input === "string" || typeof input === "number",
+		},
 	},
 	JSON: {
-		"=": input => typeof input === "object" ? input.toJson() : input.toString(),
-		"@": input => typeof input === "string" || typeof input === "object",
+		hooks: {
+			"=": input => typeof input === "object" ? input.toJson() : input.toString(),
+			"@": input => typeof input === "string" || typeof input === "object",
+		},
 	},
 		
 	COMPOUND: {},
 	ENUM: {
-		"@": input => Array.isArray(input),
+		hooks: {
+			"@": input => Array.isArray(input),
+		},
 	},
 	ARRAY: {
-		"@": input => Array.isArray(input),
+		hooks: {
+			"@": input => Array.isArray(input),
+		},
 	},
 	OBJECT: {
-		"@": input => typeof input === "object",
+		hooks: {
+			"@": input => typeof input === "object",
+		},
 	},
 	FUNCTION: {
-		"@": input => typeof input === "function",
+		hooks: {
+			"@": input => typeof input === "function",
+		},
 	},
 	CLASS: {
-		"@": input => typeof input === "object",
+		hooks: {
+			"@": input => typeof input === "object",
+		},
 	},
 	
 	SCHEMA: {},
@@ -123,6 +169,7 @@ export class Context {
 
 	constructor(type, data, { meta = {}, id = uuid(), hooks = {} } = {}) {
 		this.type = type;
+		this.data = data;
 		this.meta = {
 			id,
 			hooks,
@@ -147,7 +194,7 @@ export class Context {
 						let result = target.meta.hooks[ "@" ](value, target.data, [ target ]);
 			
 						if(result !== true) {
-							return;		// Exit if there is a validator and it didn't return TRUE
+							return target;		// Exit if there is a validator and it didn't return TRUE
 						}
 					}
 					
@@ -165,13 +212,13 @@ export class Context {
 						}
 					}
 
-					let returnVal = Reflect.set(target, prop, newData);
+					Reflect.set(target, prop, newData);
 		
 					if(typeof target.meta.hooks[ "**" ] === "function") {
 						target.meta.hooks[ "**" ](target.data, [ target ]);
 					}
 					
-					return returnVal;
+					return target;
 				}
 				
 				return Reflect.set(target, prop, value);
@@ -198,7 +245,7 @@ Object.keys(contextPrimitives).forEach(name => {
 	Context[ `${ fnName }` ] = (data, obj = {}) => {
 		obj.hooks = {
 			...(obj.hooks || {}),
-			...contextPrimitives[ name ],
+			...(contextPrimitives[ name ].hooks || {}),
 		};
 
 		return new Context(Context.EnumType[ name.toUpperCase() ], data, { ...obj });
