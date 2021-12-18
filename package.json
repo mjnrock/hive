@@ -15,6 +15,7 @@
 		"semantic-ui-css": "^2.4.1",
 		"semantic-ui-react": "^2.0.4",
 		"tachyons": "^4.12.0",
+		"uuid": "^8.3.2",
 		"web-vitals": "^1.0.1"
 	},
 	"scripts": {
@@ -47,5 +48,8 @@
 			"last 1 firefox version",
 			"last 1 safari version"
 		]
+	},
+	"devDependencies": {
+		"esm": "^3.2.25"
 	}
 }
