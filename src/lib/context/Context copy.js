@@ -143,25 +143,17 @@ export const contextPrimitives = {
 		},
 	},
 
-	// Meta Contexts
 	REF: {
 		hooks: {
 			"*": input => input instanceof Context ? input.meta.id : input,
 			"@": input => validate(input),
 		},
 	},
-	USE: {
-		hooks: {
-			"*": input => input instanceof Context ? input.meta.id : input,
-			"@": input => validate(input),
-		},
-	},
-	COPY: {
-		hooks: {
-			"*": input => input instanceof Context ? input.meta.id : input,
-			"@": input => validate(input),
-		},
-	},
+	
+	SCHEMA: {},
+	NAMESPACE: {},
+	DATASET: {},
+	COLLECTION: {},
 };
 
 function seed() {
@@ -186,11 +178,7 @@ export class Context {
 		},
 	};
 
-	constructor(type, data, { meta = {}, id = uuid(), hooks = {}, name, ...state } = {}) {
-		for(let key in state) {
-			this[ key ] = state[ key ];
-		}
-
+	constructor(type, data, { meta = {}, id = uuid(), hooks = {} } = {}) {
 		this.type = type;
 		this.data = data;
 		this.meta = {
@@ -199,11 +187,6 @@ export class Context {
 			...meta,
 		};
 
-		if(name) {
-			this.meta.name = name;
-		}
-
-
 		const proxy = new Proxy(this, {
 			get(target, prop) {
 				return Reflect.get(target, prop);
@@ -211,7 +194,7 @@ export class Context {
 			set(target, prop, value) {
 				if(prop === "data") {
 					if(typeof target.meta.hooks[ "*" ] === "function") {
-						let result = target.meta.hooks[ "*" ](value, target.data, target);
+						let result = target.meta.hooks[ "*" ](value, target.data, [ target ]);
 			
 						if(result !== void 0) {
 							value = result;		// Reshape @input if the pre hook returns something
@@ -219,7 +202,7 @@ export class Context {
 					}
 					
 					if(typeof target.meta.hooks[ "@" ] === "function") {
-						let result = target.meta.hooks[ "@" ](value, target.data, target);
+						let result = target.meta.hooks[ "@" ](value, target.data, [ target ]);
 			
 						if(result !== true) {
 							return target;		// Exit if there is a validator and it didn't return TRUE
@@ -228,9 +211,9 @@ export class Context {
 					
 					let newData = value;
 					if(typeof target.meta.hooks[ "=" ] === "function") {
-						newData = target.meta.hooks[ "=" ](value, target.data, target);
+						newData = target.meta.hooks[ "=" ](value, target.data, [ target ]);
 					} else if(typeof target.meta.hooks[ "#" ] === "function") {
-						newData = target.meta.hooks[ "#" ](value, target.data, target);
+						newData = target.meta.hooks[ "#" ](value, target.data, [ target ]);
 			
 						if(typeof target.data === "object" && typeof newData === "object") {
 							newData = {
@@ -243,7 +226,7 @@ export class Context {
 					Reflect.set(target, prop, newData);
 		
 					if(typeof target.meta.hooks[ "**" ] === "function") {
-						target.meta.hooks[ "**" ](target.data, target);
+						target.meta.hooks[ "**" ](target.data, [ target ]);
 					}
 					
 					return target;
@@ -256,16 +239,6 @@ export class Context {
 		proxy.data = data;
 
 		return proxy;
-	}
-
-	get $id() {
-		return this.meta.id;
-	}
-	get $name() {
-		return this.meta.name || this.meta.id;
-	}
-	get $label() {
-		return this.meta.name || this.meta.id;
 	}
 
 	static FromSchema(obj = {}) {
