@@ -1,5 +1,10 @@
 //TODO Have all Overlays go into a named-scope for each respective attribute (e.g. @node.state.Collection.entries)
 //TODO Create a "smart selector" on Node for overlays so that overlay name doesn't have to be explicitly used (e.g. @node.state.$$.entries)
+
+/**
+ * This is a base-level class for when a Node is to be used
+ * 	as an optionally-typed recordset repository for some data
+ */
 export const Collection = node => ({
 	state: {
 		schema: null,
@@ -52,7 +57,7 @@ export const Collection = node => ({
 		},
 		tail(rows = 1) {
 			try {
-				return node.state.entries.slice(node.state.entries.length, -rows);
+				return node.state.entries.slice(node.state.entries.length - rows, node.state.entries.length);
 			} catch(e) {
 				return false;
 			}

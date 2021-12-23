@@ -26,5 +26,11 @@ const [ node, node2 ] = Node.Factory(2, {
 	],
 });
 
-console.log(node)
-// console.log(node.state)
+console.log(node.state)
+
+node.actions.addEntry(1, 2, 3, 4, 5);
+
+console.log(node.state)
+console.log(node.actions.at(3))
+console.log(node.actions.head(3))
+console.log(node.actions.tail(3))
