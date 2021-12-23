@@ -27,11 +27,11 @@ export function Overlay(node, overlay) {
 			node.meta = {
 				...node.meta,
 				...attribute,
-
-				config: {
-					...node.meta.config,
-					...attribute,
-				},
+			};
+		} else if(key === "config") {
+			node.meta.config = {
+				...node.meta.config,
+				...attribute,
 			};
 		} else if(key === "actions") {
 			node.actions = {

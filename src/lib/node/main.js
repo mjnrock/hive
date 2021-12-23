@@ -11,6 +11,12 @@ const [ node, node2 ] = Node.Factory(2, {
 			// () => (emitter, data) => console.log(emitter.id, data),
 			(node, event) => (emitter, data) => console.log(event, emitter.id, data),
 		],
+		update: [
+			(node, event) => (data) => ({ now: data }),
+		],
+		state: [
+			(node, event) => (state, previous) => console.log(event, state, previous),
+		],
 	},
 	overlays: [
 		Eventable,
@@ -18,11 +24,22 @@ const [ node, node2 ] = Node.Factory(2, {
 	],
 });
 
-// console.log(node.events)
+console.log(node.state)
 
-node.actions.addSubscriber(node2, true);
+// node.actions.addSubscriber(node2, true);
 
-node2.actions.broadcast(Date.now());
-node.actions.broadcast(Date.now());
+// node2.actions.broadcast(Date.now());
+// node.actions.broadcast(Date.now());
+node.actions.toggleReducer(true);
+node.actions.invoke("update", Date.now());
 
-Node.Registry.forEach(n => console.log(n.id));
+console.log(node.state)
+console.log(node.$)
+
+node.actions.toggleReducer(false);
+node.actions.invoke("update", Date.now());
+
+console.log(node.state)
+console.log(node.$)
+
+// Node.Registry.forEach(n => console.log(n.id));
