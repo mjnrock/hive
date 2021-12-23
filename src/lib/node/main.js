@@ -1,6 +1,7 @@
 import Node from "./Node";
-import Eventable from "./../event/Eventable";
-import Subscribable from "./../subscription/Subscribable";
+import Eventable from "../overlays/Eventable";
+import Subscribable from "../overlays/Subscribable";
+import Collection from "../overlays/Collection";
 
 const [ node, node2 ] = Node.Factory(2, {
 	events: {
@@ -21,25 +22,9 @@ const [ node, node2 ] = Node.Factory(2, {
 	overlays: [
 		Eventable,
 		Subscribable,
+		Collection,
 	],
 });
 
-console.log(node.state)
-
-// node.actions.addSubscriber(node2, true);
-
-// node2.actions.broadcast(Date.now());
-// node.actions.broadcast(Date.now());
-node.actions.toggleReducer(true);
-node.actions.invoke("update", Date.now());
-
-console.log(node.state)
-console.log(node.$)
-
-node.actions.toggleReducer(false);
-node.actions.invoke("update", Date.now());
-
-console.log(node.state)
-console.log(node.$)
-
-// Node.Registry.forEach(n => console.log(n.id));
+console.log(node)
+// console.log(node.state)

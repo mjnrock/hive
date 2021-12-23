@@ -22,6 +22,17 @@ export class Node {
 		this.events = events;
 		this.subscriptions = new Set(...subscribers);
 		
+		/**
+		 * Allow overriding of how an overlay can be initialized:
+		 * 	overlays: [
+		 * 		Overlay1,				// ex. 1
+		 * 		[ Overlay2, () => {} ],	// ex. 2
+		 * 		[ Overlay3, [			// ex. 3
+		 * 			() => {},
+		 * 			() => {},
+		 *		],
+		 * 	]
+		 */
 		for(let overlay of overlays) {
 			if(typeof overlay === "function") {
 				Overlay(this, overlay);
