@@ -52,19 +52,23 @@ export class Node {
 
 		for(let overlay of overlays) {
 			if(typeof overlay === "function") {
-				Overlay(this, overlay);
-				this.meta.overlays.add(overlay);
+				if(!this.meta.overlays.has(overlay)) {
+					Overlay(this, overlay);
+					this.meta.overlays.add(overlay);
+				}
 			} else if(Array.isArray(overlay)) {
-				let [ ol, fns ] = overlay;
+				if(!this.meta.overlays.has(ol)) {
+					let [ ol, fns ] = overlay;
 
-				Overlay(this, ol);
-				this.meta.overlays.add(ol);
+					Overlay(this, ol);
+					this.meta.overlays.add(ol);
 
-				if(typeof fns === "function") {
-					fns(this);
-				} else if(Array.isArray(fns)) {
-					for(let fn of fns) {
-						fn(this);
+					if(typeof fns === "function") {
+						fns(this);
+					} else if(Array.isArray(fns)) {
+						for(let fn of fns) {
+							fn(this);
+						}
 					}
 				}
 			}
@@ -143,6 +147,7 @@ export class Node {
 		}
 	}
 
+	//TODO Change $ getter to remove all Namespaces from each attribute and return a merged object
 	get $() {
 		if("$value" in this.state) {
 			return this.state.$value;

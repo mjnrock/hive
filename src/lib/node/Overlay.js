@@ -102,6 +102,9 @@ export const merger = {
 			...attribute,
 		]);
 	},
+	overlays(node, overlays) {
+		node.apply(overlays);
+	},
 };
 
 export function Overlay(node, overlay) {

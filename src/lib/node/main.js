@@ -35,3 +35,5 @@ router.actions.attach(node, node2);
 node.actions.broadcast("test", 1, 2, 3);
 router.actions.invoke("receive", node, "other", [ "a", "b" ]);
 router.actions.route("different", [ "z", "x" ]);
+
+console.log(router);

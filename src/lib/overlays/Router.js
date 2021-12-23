@@ -1,5 +1,8 @@
 import Node from "../node/Node";
 
+import Eventable from "./Eventable";
+import Subscribable from "./Subscribable";
+
 export const Router = node => ({
 	state: {
 		routes: [],
@@ -74,6 +77,10 @@ export const Router = node => ({
 			return node;
 		},
 	},
+	overlays: [
+		Eventable,
+		Subscribable,
+	],
 });
 
 export default Router;
