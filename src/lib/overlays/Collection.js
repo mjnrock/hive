@@ -12,9 +12,8 @@ export const Collection = node => ({
 	},
 	// nodes: {},
 	events: [
-		"entry",
-		"removal",
-		"update",
+		"addEntry",
+		"removeEntry",
 	],
 	// subscriptions: [],
 	// meta: {},

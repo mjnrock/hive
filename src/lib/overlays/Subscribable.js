@@ -3,7 +3,11 @@ import Node from "../node/Node";
 export const Subscribable = node => ({
 	// state: {},
 	// nodes: {},
-	events: [ "receive", "subscribe", "unsubscribe" ],
+	events: [
+		"receive",
+		"subscribe",
+		"unsubscribe",
+	],
 	// events: {
 	// 	receive: new Set(),
 	// 	subscribe: new Set(),
