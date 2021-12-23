@@ -1,4 +1,4 @@
-import Node from "./node/Node";
+import Node from "../node/Node";
 
 export const Router = node => ({
 	state: {
@@ -16,6 +16,16 @@ export const Router = node => ({
 		isMultiMatch: false,
 	},
 	actions: {
+		attach(...targets) {
+			for(let target of targets) {
+				target.actions.addSubscriber(node);
+			}
+		},
+		detach(...targets) {
+			for(let target of targets) {
+				target.actions.removeSubscriber(node);
+			}
+		},
 		addRoute(filter, handler) {
 			node.state.routes.push([ filter, handler ]);
 
@@ -30,7 +40,7 @@ export const Router = node => ({
 			for(let [ filter, handler ] of node.state.routes) {
 				let hasResult = false;
 
-				let receiver = receiver;				
+				let receiver = handler;				
 				if(handler instanceof Node) {
 					receiver = handler.actions.receive;
 				}

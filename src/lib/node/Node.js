@@ -22,6 +22,19 @@ export class Node {
 		this.events = events;
 		this.subscriptions = new Set(...subscribers);
 		
+		this.apply(overlays);
+
+		Node.Registry.set(this.id, this);
+	}
+
+	deconstructor() {
+		return Node.Registry.delete(this.id);
+	}
+
+	has(overlay) {
+		return this.meta.overlays.has(overlay);
+	}
+	apply(overlays = []) {		
 		/**
 		 * Allow overriding of how an overlay can be initialized:
 		 * 	overlays: [
@@ -33,13 +46,19 @@ export class Node {
 		 *		],
 		 * 	]
 		 */
+		if(!(this.meta.overlays instanceof Set)) {
+			this.meta.overlays = new Set();
+		}
+
 		for(let overlay of overlays) {
 			if(typeof overlay === "function") {
 				Overlay(this, overlay);
+				this.meta.overlays.add(overlay);
 			} else if(Array.isArray(overlay)) {
 				let [ ol, fns ] = overlay;
 
 				Overlay(this, ol);
+				this.meta.overlays.add(ol);
 
 				if(typeof fns === "function") {
 					fns(this);
@@ -50,12 +69,6 @@ export class Node {
 				}
 			}
 		}
-
-		Node.Registry.set(this.id, this);
-	}
-
-	deconstructor() {
-		return Node.Registry.delete(this.id);
 	}
 
 	get state() {

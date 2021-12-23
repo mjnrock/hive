@@ -2,14 +2,18 @@ import Node from "./Node";
 import Eventable from "../overlays/Eventable";
 import Subscribable from "../overlays/Subscribable";
 import Collection from "../overlays/Collection";
+import Router from "../overlays/Router";
 
+const [ router ] = Node.Factory(1, {
+	overlays: [
+		Eventable,
+		Subscribable,
+		Router,
+	],
+});
 const [ node, node2 ] = Node.Factory(2, {
 	events: {
-		// receive: (node, event) => (emitter, data) => console.log(event, emitter.id, data),
 		receive: [
-			// (node, event) => (emitter, data) => console.log(1111, event, emitter.id, data),
-			// (node, event) => (emitter, data) => console.log(2222, event, emitter.id, data),
-			// () => (emitter, data) => console.log(emitter.id, data),
 			(node, event) => (emitter, data) => console.log(event, emitter.id, data),
 		],
 		update: [
@@ -22,15 +26,12 @@ const [ node, node2 ] = Node.Factory(2, {
 	overlays: [
 		Eventable,
 		Subscribable,
-		Collection,
 	],
 });
 
-console.log(node.state)
+router.actions.addRoute(() => true, (emitter, ...args) => console.log(...args));
+router.actions.attach(node, node2);
 
-node.actions.addEntry(1, 2, 3, 4, 5);
-
-console.log(node.state)
-console.log(node.actions.at(3))
-console.log(node.actions.head(3))
-console.log(node.actions.tail(3))
+node.actions.broadcast("test", 1, 2, 3);
+router.actions.invoke("receive", node, "other", [ "a", "b" ]);
+router.actions.route("different", [ "z", "x" ]);
