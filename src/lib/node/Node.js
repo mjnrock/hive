@@ -7,10 +7,9 @@ export class Node {
 	static Registry = new Map();
 
 	constructor({ id = uuid(), state = {}, nodes = [], events = {}, subscribers = [], meta = {}, actions = {}, config = {}, name, overlays = [] } = {}) {
+		// Standard Attribute:	Assignment directives
 		this.id = id;
 		this.state = state;
-		this.actions = actions;
-
 		this.meta = {
 			name: name || this.id,
 			...meta,
@@ -26,7 +25,8 @@ export class Node {
 			...overlays
 		]);
 
-		//!	These are *merge* directives, not assignments
+		// Dynamic Attributes:	Merge directives
+		this.actions = actions;
 		this.nodes = nodes;
 		this.events = events;
 		this.subscriptions = subscribers;
@@ -121,7 +121,7 @@ export class Node {
 	get actions() {
 		return this._actions;
 	}
-	set actions(newActions = []) {
+	set actions(newActions = {}) {
 		if(!this._actions) {
 			this._actions = {};
 		}
@@ -230,8 +230,15 @@ export class Node {
 	static Factory(qty, opts = {}) {
 		let nodes = [];
 
-		for(let i = 0; i < qty; i++) {
-			nodes.push(new Node(opts));
+		if(Array.isArray(opts)) {
+			for(let i = 0; i < qty; i++) {
+				nodes.push(new Node({ overlays: opts }));
+			}
+		} else {
+
+			for(let i = 0; i < qty; i++) {
+				nodes.push(new Node(opts));
+			}
 		}
 
 		return nodes;

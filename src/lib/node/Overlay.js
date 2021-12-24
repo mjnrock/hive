@@ -148,6 +148,7 @@ export function Overlay(node, overlay, customMerger = false) {
 		}
 	}
 
+	hook("iterator", node, layer);
 	hook("post", node, layer);
 };
 
