@@ -6,6 +6,7 @@ import Router from "../overlays/Router";
 
 import Proposition from "../util/logic/Proposition";
 import Console from "../util/Console";
+import Enumerator from "../util/Enumerator";
 
 Console.NewContext();
 
@@ -47,3 +48,18 @@ let propCompound = Proposition.AND(
 );
 let results = collection.actions.where(propCompound);
 console.log(results);
+
+const Enum = Enumerator([
+	"Cat",
+	"Dog",
+	"Other",
+], { asBitwise: false, arrayConfig: { startAt: 14, step: 7 }} );
+// const Enum = Enumerator({
+// 	Cat: 5,
+// 	Dog: 10,
+// 	Other: 15,
+// });
+
+for(let [ k, v ] of Enum) {
+	console.log(k, v)
+}
