@@ -53,7 +53,8 @@ const Enum = Enumerator([
 	"Cat",
 	"Dog",
 	"Other",
-], { asBitwise: false, arrayConfig: { startAt: 14, step: 7 }} );
+], { asBitwise: true });
+// ], { asBitwise: false }, { startAt: 14, step: 7 } );
 // const Enum = Enumerator({
 // 	Cat: 5,
 // 	Dog: 10,
@@ -63,3 +64,6 @@ const Enum = Enumerator([
 for(let [ k, v ] of Enum) {
 	console.log(k, v)
 }
+
+console.log(Enum.flagToName(1 << 1));
+console.log(Enum.maskToNames(1 << 0 | 1 << 1));
