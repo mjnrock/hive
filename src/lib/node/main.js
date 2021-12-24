@@ -6,8 +6,6 @@ import Router from "../overlays/Router";
 
 const [ router ] = Node.Factory(1, {
 	overlays: [
-		Eventable,
-		Subscribable,
 		Router,
 	],
 });
@@ -23,10 +21,7 @@ const [ node, node2 ] = Node.Factory(2, {
 			(node, event) => (state, previous) => console.log(event, state, previous),
 		],
 	},
-	overlays: [
-		Eventable,
-		Subscribable,
-	],
+	// overlays: [],
 });
 
 router.actions.addRoute(() => true, (emitter, ...args) => console.log(...args));
@@ -35,5 +30,3 @@ router.actions.attach(node, node2);
 node.actions.broadcast("test", 1, 2, 3);
 router.actions.invoke("receive", node, "other", [ "a", "b" ]);
 router.actions.route("different", [ "z", "x" ]);
-
-console.log(router);

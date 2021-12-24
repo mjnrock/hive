@@ -1,4 +1,16 @@
 export const Eventable = node => ({
+	/**
+	 * This will execute directly *after* Eventable(node) has been evaluated
+	 * 	but before any other entries have been be evaluated
+	 */
+	$pre(node, overlay) {
+		node._events = {};
+	},
+	/**
+	 * This will after *all* other overlay entries have been processed
+	 */
+	$post(node, overlay) {},
+	
 	// state: {},
 	// nodes: {},
 	events: [

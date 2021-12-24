@@ -4,9 +4,9 @@ import Eventable from "./Eventable";
 import Subscribable from "./Subscribable";
 
 export const Router = node => ({
-	state: {
-		routes: [],
-	},
+	// state: {
+	// 	routes: [],
+	// },
 	// nodes: {},
 	events: {
 		receive: [
@@ -16,6 +16,7 @@ export const Router = node => ({
 	// subscriptions: [],
 	// meta: {},
 	config: {
+		routes: [],
 		isMultiMatch: false,
 	},
 	actions: {
@@ -30,17 +31,17 @@ export const Router = node => ({
 			}
 		},
 		addRoute(filter, handler) {
-			node.state.routes.push([ filter, handler ]);
+			node.meta.config.routes.push([ filter, handler ]);
 
 			return node;
 		},
 		removeRoute(filter, handler) {
-			node.state.routes = node.state.routes.filter(([ f, h ]) => !(f === filter && h === handler));
+			node.meta.config.routes = node.meta.config.routes.filter(([ f, h ]) => !(f === filter && h === handler));
 
 			return node;
 		},
 		route(...args) {
-			for(let [ filter, handler ] of node.state.routes) {
+			for(let [ filter, handler ] of node.meta.config.routes) {
 				let hasResult = false;
 
 				let receiver = handler;				
@@ -77,10 +78,6 @@ export const Router = node => ({
 			return node;
 		},
 	},
-	overlays: [
-		Eventable,
-		Subscribable,
-	],
 });
 
 export default Router;

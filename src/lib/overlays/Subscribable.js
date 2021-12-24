@@ -1,6 +1,11 @@
 import Node from "../node/Node";
 
 export const Subscribable = node => ({
+	$pre(node, overlay) {
+		node._subscriptions = new Set();
+	},
+	$post(node, overlay) {},
+	
 	// state: {},
 	// nodes: {},
 	events: [
@@ -8,11 +13,6 @@ export const Subscribable = node => ({
 		"subscribe",
 		"unsubscribe",
 	],
-	// events: {
-	// 	receive: new Set(),
-	// 	subscribe: new Set(),
-	// 	unsubscribe: new Set(),
-	// },
 	// subscriptions: new Set(),
 	// meta: {},
 	// config: {},

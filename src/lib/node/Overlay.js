@@ -107,29 +107,48 @@ export const merger = {
 	},
 };
 
-export function Overlay(node, overlay) {
+export function hook(key, node, layer) {
+	if(`$${ key }` in layer) {
+		if(typeof layer[ `$${ key }` ] === "function") {
+			layer[ `$${ key }` ](node, layer);
+		}
+
+		delete layer[ `$${ key }` ];
+	}
+}
+
+export function Overlay(node, overlay, customMerger = false) {
+	customMerger = customMerger || merger;
 	/**
 	 * Evaluate the overlay function to to get
 	 * 	working template object
 	 */
-	let overlayer = overlay(node);
-	for(let [ key, attribute ] of Object.entries(overlayer)) {
-		/**
-		 * Allow for <Overlay> to have dynamic outputs, by evaluating the
-		 * 	function stored at overlay[ key ]
-		 */
-		if(typeof attribute === "function") {
-			attribute = attribute(key, node, overlayer);
-		}
+	let layer = overlay(node);
+	hook("pre", node, layer);
 
-		/**
-		 * Perform key-specific functions on the node
-		 * 	for a given overlay attribute
-		 */
-		if(key in merger) {
-			merger[ key ](node, attribute);
+	for(let [ key, attribute ] of Object.entries(layer)) {
+		if(key[ 0 ] !== "$") {
+			/**
+			 * Allow for <Overlay> to have dynamic outputs, by evaluating the
+			 * 	function stored at overlay[ key ]
+			 */
+			if(typeof attribute === "function") {
+				attribute = attribute(key, node, layer);
+			}
+	
+			/**
+			 * Perform key-specific functions on the node
+			 * 	for a given overlay attribute
+			 */
+			if(key in customMerger) {
+				customMerger[ key ](node, attribute);
+			} else {
+				node[ key ] = attribute;
+			}
 		}
 	}
+
+	hook("post", node, layer);
 };
 
 export default Overlay;

@@ -1,5 +1,7 @@
 import { v4 as uuid } from "uuid";
 import Overlay from "./Overlay";
+import Eventable from "../overlays/Eventable";
+import Subscribable from "../overlays/Subscribable";
 
 export class Node {
 	static Registry = new Map();
@@ -18,14 +20,32 @@ export class Node {
 			...config,
 		};
 
+		this.apply([
+			Eventable,
+			Subscribable,
+			...overlays
+		]);
+
+		//!	These are *merge* directives, not assignments
 		this.nodes = nodes;
 		this.events = events;
-		this.subscriptions = new Set(...subscribers);
+		this.subscriptions = subscribers;
 		
-		this.apply(overlays);
-
 		Node.Registry.set(this.id, this);
 	}
+
+	/**
+	 * Iterating (for..of) over a Node will iterate over Node.state
+	 * 	If you need the actual Node[ ...keys ], use (for..in)
+	 */
+	[ Symbol.iterator ]() {
+        var index = -1;
+        var data = Object.entries(this.state);
+
+        return {
+            next: () => ({ value: data[ ++index ], done: !(index in data) })
+        };
+    }
 
 	deconstructor() {
 		return Node.Registry.delete(this.id);
@@ -34,6 +54,13 @@ export class Node {
 	has(overlay) {
 		return this.meta.overlays.has(overlay);
 	}
+
+	/**
+	 * Overlays will *merge* entries, if the merger object has a hook
+	 * 	for that specific key; "assign" entries in cases where no key
+	 * 	exists in the merger object; and "execute" the command hooks
+	 * 	at their respective times (i.e. $pre, $post)
+	 */
 	apply(overlays = []) {		
 		/**
 		 * Allow overriding of how an overlay can be initialized:
@@ -48,6 +75,7 @@ export class Node {
 		 */
 		if(!(this.meta.overlays instanceof Set)) {
 			this.meta.overlays = new Set();
+			this.meta.overlays.add(this);
 		}
 
 		for(let overlay of overlays) {
@@ -142,6 +170,46 @@ export class Node {
 					} else if(typeof handlers === "function") {
 						this.events[ event ].add(handlers);
 					}
+				}
+			}
+		}
+	}
+
+	get subscriptions() {
+		return this._subscriptions;
+	}
+	set subscriptions(newSubscribers = []) {
+		if(!this._subscriptions) {
+			this._subscriptions = new Set();
+		}
+
+		if(Array.isArray(newSubscribers) || newSubscribers instanceof Set) {
+			for(let subscriber of newSubscribers) {
+				if(subscriber instanceof Node || typeof subscriber === "function") {
+					this._subscriptions.add(subscriber);
+				}
+			}
+		}
+	}
+
+	get nodes() {
+		return this._nodes;
+	}
+	set nodes(newNodes = []) {
+		if(!this._nodes) {
+			this._nodes = new Map();
+		}
+
+		if(Array.isArray(newNodes)) {
+			for(let node of newNodes) {
+				if(node instanceof Node) {
+					this._nodes.set(node.id, node);
+				}
+			}
+		} else if(typeof newNodes === "object") {
+			for(let [ key, node ] of Object.entries(newNodes)) {
+				if(node instanceof Node) {
+					this._nodes.set(key, node);
 				}
 			}
 		}
