@@ -152,6 +152,12 @@ export function seedObject(keys = [], fn = () => null) {
 //     return 1;
 // }));
 
+export function capitalizeFirstLetter(input) {
+	let string = input.toLowerCase();
+	
+	return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 /**
  * ! This may produce shallowly-unantipicated rounding calculations.  (cf. Math.round for nuances)
  */
@@ -274,6 +280,7 @@ export default {
     unflatten,
     recurse,
     seedObject,
+	capitalizeFirstLetter,
     round,
     floor,
     ceil,
