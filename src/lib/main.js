@@ -13,4 +13,4 @@ console.log(compound.toObject());
 console.log(compound.toJson());
 
 const recomp = Context.FromObject(compound.toObject());
-console.log(recomp);
+console.log(recomp.meta.id);

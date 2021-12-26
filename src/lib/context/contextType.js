@@ -1,9 +1,11 @@
 export const types = [
 	//	Primitives
+	"byte",
+	
 	"empty",
 	"null",
-	"any",
 	"bool",
+	"any",
 
 	"uint8",
 	"uint16",
