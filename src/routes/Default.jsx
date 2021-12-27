@@ -2,20 +2,18 @@ import React from "react";
 
 import { Context } from "./../App";
 
-import Form from "./../lib/form/Form";
-import Section from "../lib/form/Section";
-import Element from "../lib/form/Element";
-import RenderForm from "./form/viewer/Form";
-import BuilderForm from "./form/builder/Form";
-
-import FormTest from "./../data/FormTest";
-console.log(Form.FromSchema(FormTest))
+import TagViewer from "./tag/viewer/Default";
+import TagBuilder from "./tag/builder/Default";
+import { Header } from "semantic-ui-react";
 
 export function Default() {
 	return (
 		<div style={{ fontFamily: "monospace" }}>
-			{/* <RenderForm form={ Form.FromSchema(FormTest) } /> */}
-			<BuilderForm form={ Form.FromSchema(FormTest) } />
+			<Header as={ "h1" } textAlign="center">Builder</Header>
+			<TagBuilder />
+
+			{/* <Header as={ "h1" } textAlign="center">Viewer</Header>
+			<TagViewer /> */}
 		</div>
 	);
 }

@@ -58,7 +58,7 @@ export const contextPrimitives = {
 
 	INT8: {
 		hooks: {
-			"=": input => Math.max(-255, Math.min(255, ~~input)),
+			"=": input => Math.max(-128, Math.min(127, ~~input)),
 		},
 	},
 	INT16: {

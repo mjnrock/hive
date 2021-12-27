@@ -14,6 +14,8 @@
 * `int16`
 * `int32`
 * `int64`
+* `float32`
+* `float64`
 * `char`
 * `string`
 * `json`
@@ -35,7 +37,7 @@ All `Context` descriptions below are written in javascript object notation.  If 
 |-|-|
 |`@Primitive`|An `enum` for `Context` types|
 |`@Context`|A `Context` instance|
-|`@{type}`|A `type`-specific instance (e.g. `@uint8` -> 8)|
+|`@{type}`|A `type`-specific value-instance (e.g. `@uint8` -> 8)|
 
 ## Common Attributes
 All attributes below are **required** for *all* tags.  Individual `Context` descriptions below show only those attributes *specific* to that `Context`.
@@ -43,11 +45,21 @@ All attributes below are **required** for *all* tags.  Individual `Context` desc
 {
 	id: @uuid,
 	type: @Primitive,
-	name: @string,
+	alias: @string | @string[],
 	data,					// data is dependent on the Context type
 	meta: {
 		...
 	}
+}
+```
+
+These attributes below are **optional** for *all* tags.
+```
+{
+	namespace: @string,
+	meta: {
+		config: @object,
+	},
 }
 ```
 
@@ -105,8 +117,28 @@ A boolean value of `true` or `false`.
 
 ---
 
+## **Numbers**
+The *Numbers* category has a constraints within it to help deal with numbers, in general.
+**Required**
+**Optional**
+```
+{
+	meta: {
+		[?] min: @float32
+		[?] max: @float32
+	}
+}
+```
+
+---
+
 ## Uint8 [ `uint8` ]
 A 1-byte, unsigned integer.
+|||
+|-|-|
+|Min|0|
+|Max|255|
+
 ```
 {
 	data: @uint8,
@@ -114,6 +146,11 @@ A 1-byte, unsigned integer.
 ```
 
 ## Uint16 [ `uint16` ]
+|||
+|-|-|
+|Min|0|
+|Max|65,535|
+
 A 2-byte, unsigned integer.
 ```
 {
@@ -122,6 +159,11 @@ A 2-byte, unsigned integer.
 ```
 
 ## Uint32 [ `uint32` ]
+|||
+|-|-|
+|Min|0|
+|Max|4,294,967,295|
+
 A 4-byte, unsigned integer.
 ```
 {
@@ -130,6 +172,11 @@ A 4-byte, unsigned integer.
 ```
 
 ## Uint64 [ `uint64` ]
+|||
+|-|-|
+|Min|0|
+|Max|18,446,744,073,709,551,615|
+
 An 8-byte, unsigned integer.
 ```
 {
@@ -140,6 +187,11 @@ An 8-byte, unsigned integer.
 ---
 
 ## Int8 [ `int8` ]
+|||
+|-|-|
+|Min|-128|
+|Max|127|
+
 A 1-byte, unsigned integer.
 ```
 {
@@ -148,6 +200,11 @@ A 1-byte, unsigned integer.
 ```
 
 ## Int16 [ `int16` ]
+|||
+|-|-|
+|Min|-32,768|
+|Max|32,767|
+
 A 2-byte, unsigned integer.
 ```
 {
@@ -156,6 +213,11 @@ A 2-byte, unsigned integer.
 ```
 
 ## Int32 [ `int32` ]
+|||
+|-|-|
+|Min|-2,147,483,648|
+|Max|2,147,483,647|
+
 A 4-byte, unsigned integer.
 ```
 {
@@ -164,10 +226,49 @@ A 4-byte, unsigned integer.
 ```
 
 ## Int64 [ `int64` ]
+|||
+|-|-|
+|Min|-9,223,372,036,854,775,808|
+|Max|9,223,372,036,854,775,807|
+
 An 8-byte, unsigned integer.
 ```
 {
 	data: @int64,
+}
+```
+
+---
+
+## Float32 [ `float32` ]
+|||
+|-|-|
+|Min|-3.40282347E+38|
+|Max|3.40282347E+38|
+
+A 4-byte, floating-point number.
+```
+{
+	data: @float32,
+	meta: {
+		[?] currency: @string		// Currency symbol
+	}
+}
+```
+
+## Float64 [ `float64` ]
+|||
+|-|-|
+|Min|-1.7976931348623157E+308|
+|Max|1.7976931348623157E+308|
+
+An 8-byte, floating-point number.
+```
+{
+	data: @float64,
+	meta: {
+		[?] currency: @string		// Currency symbol
+	}
 }
 ```
 
@@ -233,7 +334,7 @@ A numeric representation of a date, expressed as the number of elapsed milliseco
 A time segmentation of hours, minutes, seconds, and milliseconds constrained to the valid times in a day.
 ```
 {
-	data: [ @uint8, @uint8, @uint8, @uint32],
+	data: [ @uint8, @uint8, @uint8, @uint32 ],
 }
 ```
 |index|type|desc|min|max|
@@ -300,18 +401,18 @@ This shows an example `list` with **two (2)** `uint8` children.
 {
 	id: "596aafbe-1d0f-4347-a402-ed6b478bc361",
 	type: "list",
-	name: "Range",
+	alias: "Range",
 	data: [
 		{
 			id: "1fe59843-d689-4e45-ba45-7bbd3ea97318",
 			type: "uint8",
-			name: "Min",
+			alias: "Min",
 			data: 0,
 		},
 		{
 			id: "79b3583b-53b8-4bbc-a2bc-40d1ccd5e149",
 			type: "uint8",
-			name: "Max",
+			alias: "Max",
 			data: 255,
 		},
 	],
@@ -340,24 +441,24 @@ This shows an example `compound` with **three (3)** children.
 {
 	id: "596aafbe-1d0f-4347-a402-ed6b478bc361",
 	type: "compound",
-	name: "Container",
+	alias: "Container",
 	data: [
 		{
 			id: "1fe59843-d689-4e45-ba45-7bbd3ea97318",
 			type: "uint8",
-			name: "Child 1",
+			alias: "Child 1",
 			data: 0,
 		},
 		{
 			id: "79b3583b-53b8-4bbc-a2bc-40d1ccd5e149",
 			type: "string",
-			name: "Child 2",
+			alias: "Child 2",
 			data: "test",
 		},
 		{
 			id: "d1e90e86-60b9-413c-a13b-842fd0cbb3e6",
 			type: "string",
-			name: "Child 3",
+			alias: "Child 3",
 			data: "other text",
 		},
 	],
@@ -370,7 +471,7 @@ This shows an example `compound` with **three (3)** children.
 	},
 }
 ```
-For the example above, you could access the `Context` with `name='Child 3'` by invoking the `alias` (`$.Container.child3`), by using the `name` (`$.Container["Child 3"]`), or with the `id` (`$.Container["d1e90e86-60b9-413c-a13b-842fd0cbb3e6"]`).
+For the example above, you could access the `Context` with `alias='Child 3'` by invoking the `alias` (`$.Container.child3`), by using the `alias` (`$.Container["Child 3"]`), or with the `id` (`$.Container["d1e90e86-60b9-413c-a13b-842fd0cbb3e6"]`).
 
 ---
 
@@ -389,6 +490,60 @@ A generic function, with optional syntax flag.
 	data: @function,
 	meta: {
 		syntax: "js"
+	},
+}
+```
+`$.meta.syntax` : This should give a value representing the syntax language (e.g. **js = JavaScript**)
+
+---
+
+# Context Complexes
+The complexes are multi-type, disjunctive sets.  A complex can be any one of its member-children.
+
+## Types
+* `number`
+* `text`
+
+---
+
+## Number [ `number` ]
+Anything immediately related to a *number*, such as: integers and decimal numbers.
+ * `uint8`
+ * `uint16`
+ * `uint32`
+ * `uint64`
+ * `int8`
+ * `int16`
+ * `int32`
+ * `int64`
+ * `float32`
+ * `float64`
+```
+{
+	data: @number,
+	meta: {
+		[?] currency: @regex | @function		// Currency symbol
+		[?] validate: @regex | @function		// Value-enforcement constraint
+		[?] min: @float32
+		[?] max: @float32
+	},
+}
+```
+
+## Text [ `text` ]
+A higher-order *text* type that can encompasses anything immediately related to typography.
+
+ * `char`
+ * `string`
+ * `number`
+ * 
+**Note:** The presence of the `number` type, illustrating the nestability of complexes.
+```
+{
+	data: @type,
+	meta: {
+		[?] validate: @regex | @function		// Value-enforcement constraint
+		[?] size: @int32
 	},
 }
 ```
