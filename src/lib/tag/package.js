@@ -8,6 +8,8 @@ import TagInt16 from "./TagInt16";
 import TagInt32 from "./TagInt32";
 import TagChar from "./TagChar";
 import TagString from "./TagString";
+import TagList from "./TagList";
+import TagCompound from "./TagCompound";
 
 export default {
 	Types: Tag.Types,
@@ -22,4 +24,6 @@ export default {
 	Uint32: TagUint32,
 	Char: TagChar,
 	String: TagString,
+	List: TagList,
+	Compound: TagCompound,
 };
