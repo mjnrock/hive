@@ -16,9 +16,6 @@ export function Default() {
 
 	return (
 		<div style={{ fontFamily: "monospace" }}>
-			<div className="f1 tc">Tag Sandbox</div>
-			<hr />
-
 			<div className="f3 ma2 pa1 b black-80">Test Context</div>
 			<pre className="ma2 pa1 ba br2 b--black-10 bg-black-10 shadow-4 black-80">
 			{
