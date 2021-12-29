@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Segment, Message, Grid, Header } from "semantic-ui-react";
 
-import $Util from "./../../../lib/util/package";
-import $Tag from "./../../../lib/tag/Tag";
+import $Util from "../../../lib/util/package";
+import $Tag from "../../../lib/tag/Tag";
 import $TagUint8 from "../../../lib/tag/TagUint8";
 
 const colors = {
@@ -96,7 +96,7 @@ export function Tag({ tag } = {}) {
 
 						return (
 							<>
-								<Grid.Column>
+								<Grid.Column key={ i }>
 									<Grid.Row>
 										<Header as="h5">{ key }</Header>
 									</Grid.Row>
@@ -126,7 +126,7 @@ export function Tag({ tag } = {}) {
 							let results = [];
 							if(value instanceof $Tag) {
 								results.push(
-									<Tag key={ i } tag={ value } />
+									<Tag key={ key } tag={ value } />
 								);
 							} else if(typeof value === "object") {
 								results = JSON.stringify(value);
@@ -136,7 +136,7 @@ export function Tag({ tag } = {}) {
 
 							return (
 								<>
-									<Grid.Row>
+									<Grid.Row key={ key }>
 										{ results }
 									</Grid.Row>
 								</>
