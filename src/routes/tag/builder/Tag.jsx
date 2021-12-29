@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Segment, Icon, Menu, Table } from "semantic-ui-react";
+import { Segment, Message, Grid, Header } from "semantic-ui-react";
 
 import $Util from "./../../../lib/util/package";
 import $Tag from "./../../../lib/tag/Tag";
@@ -71,79 +71,164 @@ export function Tag({ tag } = {}) {
 	}
 
 	return (
-		<Segment basic={true}>
-			<Table celled color={ colors[ state.tag.type ] }>
-				<Table.Header style={{
-					fontFamily: "Lato",
-				}}>
-					<Table.Row>
-						<Table.HeaderCell>Name</Table.HeaderCell>
-						<Table.HeaderCell>Value</Table.HeaderCell>
-					</Table.Row>
-				</Table.Header>
+		<Segment raised style={{
+			marginBottom: 12,
+		}}>
+			<Grid columns="equal" padded>
+				{
+					Object.entries(state.tag || {}).map(([ key, value ], i) => {
+						if(value == null || (key === "data" || key === "_data") || !Object.keys(JSON.parse(JSON.stringify(value))).length) {
+							return null;
+						}
 
-				<Table.Body style={{
-					fontFamily: "monospace",
-				}}>
+						let result;
+						if(typeof value === "object") {
+							result = JSON.stringify(value);
+						} else {
+							result = value;
+						}
+
+						const css = {
+							_type: {
+								color: lookup(state.tag.type),
+							},
+						};
+
+						return (
+							<>
+								<Grid.Column>
+									<Grid.Row>
+										<Header as="h5">{ key }</Header>
+									</Grid.Row>
+
+									<Grid.Row style={{
+										paddingTop: 4,
+										fontFamily: `monospace`,
+									}}>
+										<div style={ css[ key ] || {} }>{ result }</div>
+									</Grid.Row>
+								</Grid.Column>
+							</>
+						);
+					})
+				}
+			</Grid>
+			
+			<Grid columns={ 1 } padded>
+				<Grid.Column>
 					{
-						Object.entries(state.tag || {}).map(([ key, value ]) => {
+						typeof state.tag._data === "object" ?
+						Object.entries(state.tag._data || {}).map(([ key, value ], i) => {
 							if(value == null) {
 								return null;
 							}
 
-							let ret;
-							if(typeof value === "object") {
-								if(!Object.keys(JSON.parse(JSON.stringify(value))).length) {
-									return null;
-								}
-
-								if(key === "data" || key === "_data") {
-									let results = [];
-									Object.values(value).forEach((entry, i) => {
-										if(entry instanceof $Tag) {
-											results.push(
-												<Tag key={ i } tag={ entry } />
-											);
-										}
-									});
-										
-									ret = results;
-								} else {
-									ret = JSON.stringify(value);
-								}
+							let results = [];
+							if(value instanceof $Tag) {
+								results.push(
+									<Tag key={ i } tag={ value } />
+								);
+							} else if(typeof value === "object") {
+								results = JSON.stringify(value);
 							} else {
-								ret = value;
+								results = value;
 							}
 
 							return (
-								<Table.Row key={ key }>
-									<Table.Cell style={{
-										fontStyle: "italic",
-										fontFamily: "Lato",
-										textAlign: "center",
-									}}>{ key }</Table.Cell>
-									<Table.Cell style={{
-										backgroundColor: (key === "type" || key === "_type") ? lookup(state.tag.type) : null,
-										color: (key === "type" || key === "_type") ? "white" : `#333`,
-									}}>{ ret }</Table.Cell>
-								</Table.Row>
+								<>
+									<Grid.Row>
+										{ results }
+									</Grid.Row>
+								</>
 							);
 						})
+						:
+						(
+							<Message style={{
+								color: lookup(state.tag.type),
+								fontFamily: `monospace`,
+								fontWeight: `bold`,
+							}}>
+								{ state.tag._data }
+							</Message>
+						)
 					}
-				</Table.Body>
-
-				<Table.Footer>
-					<Table.Row>
-						<Table.HeaderCell colSpan="3">
-							<Menu floated="right" pagination>
-								<Menu.Item as="a" icon onClick={ e => handleEvent(e) }>
-									<Icon name="plus" />
-								</Menu.Item>
-							</Menu>
-						</Table.HeaderCell>
-					</Table.Row>
-				</Table.Footer>
-			</Table>
+				</Grid.Column>
+			</Grid>
 		</Segment>
 	);
 }
+
+
+{/* <Table celled color={ colors[ state.tag.type ] }>
+	<Table.Header style={{
+		fontFamily: "Lato",
+	}}>
+		<Table.Row>
+			<Table.HeaderCell>Name</Table.HeaderCell>
+			<Table.HeaderCell>Value</Table.HeaderCell>
+		</Table.Row>
+	</Table.Header>
+
+	<Table.Body style={{
+		fontFamily: "monospace",
+	}}>
+		{
+			Object.entries(state.tag || {}).map(([ key, value ]) => {
+				if(value == null) {
+					return null;
+				}
+
+				let ret;
+				if(typeof value === "object") {
+					if(!Object.keys(JSON.parse(JSON.stringify(value))).length) {
+						return null;
+					}
+
+					if(key === "data" || key === "_data") {
+						let results = [];
+						Object.values(value).forEach((entry, i) => {
+							if(entry instanceof $Tag) {
+								results.push(
+									<Tag key={ i } tag={ entry } />
+								);
+							}
+						});
+							
+						ret = results;
+					} else {
+						ret = JSON.stringify(value);
+					}
+				} else {
+					ret = value;
+				}
+
+				return (
+					<Table.Row key={ key }>
+						<Table.Cell style={{
+							fontStyle: "italic",
+							fontFamily: "Lato",
+							textAlign: "center",
+						}}>{ key }</Table.Cell>
+						<Table.Cell style={{
+							backgroundColor: (key === "type" || key === "_type") ? lookup(state.tag.type) : null,
+							color: (key === "type" || key === "_type") ? "white" : `#333`,
+						}}>{ ret }</Table.Cell>
+					</Table.Row>
+				);
+			})
+		}
+	</Table.Body>
+
+	<Table.Footer>
+		<Table.Row>
+			<Table.HeaderCell colSpan="3">
+				<Menu floated="right" pagination>
+					<Menu.Item as="a" icon onClick={ e => handleEvent(e) }>
+						<Icon name="plus" />
+					</Menu.Item>
+				</Menu>
+			</Table.HeaderCell>
+		</Table.Row>
+	</Table.Footer>
+</Table> */}

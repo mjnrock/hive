@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import Routes from "./routes/package";
 
+import "tachyons/src/tachyons.css";
+import "./css/grid.tachyons.css";
 import "semantic-ui-css/semantic.min.css";
-// import "tachyons/src/tachyons.css";
-// import "./css/grid.tachyons.css";
 import "./css/main.css";
 
 export const Context = React.createContext();
