@@ -90,9 +90,13 @@ export function Tag({ tag } = {}) {
 							if(value == null) {
 								return null;
 							}
-							
+
 							let ret;
 							if(typeof value === "object") {
+								if(!Object.keys(JSON.parse(JSON.stringify(value))).length) {
+									return null;
+								}
+
 								if(key === "data" || key === "_data") {
 									let results = [];
 									Object.values(value).forEach((entry, i) => {
