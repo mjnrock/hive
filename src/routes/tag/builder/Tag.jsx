@@ -87,6 +87,10 @@ export function Tag({ tag } = {}) {
 				}}>
 					{
 						Object.entries(state.tag || {}).map(([ key, value ]) => {
+							if(value == null) {
+								return null;
+							}
+							
 							let ret;
 							if(typeof value === "object") {
 								if(key === "data" || key === "_data") {
