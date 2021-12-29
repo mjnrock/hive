@@ -21,7 +21,26 @@ const colors = {
 
 	[ $Tag.Types.List ]: "black",
 	[ $Tag.Types.Compound ]: "grey",
-}
+};
+const lookup = type => {
+	const map = {
+		red: "#B03060",
+		orange: "#FE9A76",
+		yellow: "#FFD700",
+		olive: "#32CD32",
+		green: "#016936",
+		teal: "#008080",
+		blue: "#0E6EB8",
+		violet: "#EE82EE",
+		purple: "#B413EC",
+		pink: "#FF1493",
+		brown: "#A52A2A",
+		grey: "#A0A0A0",
+		black: "#000000",
+	};
+
+	return map[ colors[ type] ];
+};
 
 export function Tag({ tag } = {}) {
 	const [state, setState] = useState(tag);
@@ -54,18 +73,23 @@ export function Tag({ tag } = {}) {
 	return (
 		<Segment basic={true}>
 			<Table celled color={ colors[ state.tag.type ] }>
-				<Table.Header>
+				<Table.Header style={{
+					fontFamily: "Lato",
+				}}>
 					<Table.Row>
 						<Table.HeaderCell>Name</Table.HeaderCell>
 						<Table.HeaderCell>Value</Table.HeaderCell>
 					</Table.Row>
 				</Table.Header>
 
-				<Table.Body>
+				<Table.Body style={{
+					fontFamily: "monospace",
+				}}>
 					{
 						Object.entries(state.tag || {}).map(([ key, value ]) => {
-							if(key === "data" || key === "_data") {
-								if(typeof value === "object") {
+							let ret;
+							if(typeof value === "object") {
+								if(key === "data" || key === "_data") {
 									let results = [];
 									Object.values(value).forEach((entry, i) => {
 										if(entry instanceof $Tag) {
@@ -75,23 +99,25 @@ export function Tag({ tag } = {}) {
 										}
 									});
 										
-									return (
-										<Table.Row key={ key }>
-											<Table.Cell>{ key }</Table.Cell>
-											<Table.Cell>
-												{
-													results
-												}
-											</Table.Cell>
-										</Table.Row>
-									);
+									ret = results;
+								} else {
+									ret = JSON.stringify(value);
 								}
+							} else {
+								ret = value;
 							}
 
 							return (
 								<Table.Row key={ key }>
-									<Table.Cell>{ key }</Table.Cell>
-									<Table.Cell>{ JSON.stringify(value) }</Table.Cell>
+									<Table.Cell style={{
+										fontStyle: "italic",
+										fontFamily: "Lato",
+										textAlign: "center",
+									}}>{ key }</Table.Cell>
+									<Table.Cell style={{
+										backgroundColor: (key === "type" || key === "_type") ? lookup(state.tag.type) : null,
+										color: (key === "type" || key === "_type") ? "white" : `#333`,
+									}}>{ ret }</Table.Cell>
 								</Table.Row>
 							);
 						})
