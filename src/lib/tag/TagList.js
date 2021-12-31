@@ -12,8 +12,8 @@ export class TagList extends Tag {
 		ThrowError(ErrorTypes.InvalidInput, input, this);
 	};
 
-	constructor(data, opts = {}) {
-		super(TagList.Type, data, {
+	constructor(alias, data, opts = {}) {
+		super(alias,TagList.Type, data, {
 			...opts,
 			validate: TagList.Validator,
 		});

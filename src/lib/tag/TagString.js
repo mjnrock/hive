@@ -12,8 +12,8 @@ export class TagString extends Tag {
 		ThrowError(ErrorTypes.InvalidInput, input, this);
 	};
 
-	constructor(data, opts = {}) {
-		super(TagString.Type, data, {
+	constructor(alias, data, opts = {}) {
+		super(alias,TagString.Type, data, {
 			...opts,
 			validate: TagString.Validator,
 		});

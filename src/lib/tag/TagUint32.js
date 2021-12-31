@@ -18,8 +18,8 @@ export class TagUint32 extends Tag {
 		ThrowError(ErrorTypes.NotANumber, input, this);
 	};
 
-	constructor(data, opts = {}) {
-		super(TagUint32.Type, data, {
+	constructor(alias, data, opts = {}) {
+		super(alias,TagUint32.Type, data, {
 			...opts,
 			validate: TagUint32.Validator,
 		});

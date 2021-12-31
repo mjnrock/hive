@@ -3,10 +3,10 @@ import { capitalizeFirstLetter } from "../util/helper";
 import tagTypes from "./tagType";
 
 export class Tag {
-	constructor(type, data, { meta = {}, alias, id, validate, namespace } = {}) {
+	constructor(alias, type, data, { meta = {}, id, validate, namespace } = {}) {
 		this.id = id || uuid();
-		this.type = type;
 		this.alias = alias;
+		this.type = type;
 		this.meta = {
 			validate,
 			namespace,

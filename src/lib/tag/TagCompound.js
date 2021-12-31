@@ -12,8 +12,8 @@ export class TagCompound extends Tag {
 		ThrowError(ErrorTypes.InvalidInput, input, this);
 	};
 
-	constructor(data, opts = {}) {
-		super(TagCompound.Type, data, {
+	constructor(alias, data, opts = {}) {
+		super(alias,TagCompound.Type, data, {
 			...opts,
 			validate: TagCompound.Validator,
 		});

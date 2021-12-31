@@ -18,8 +18,8 @@ export class TagInt16 extends Tag {
 		ThrowError(ErrorTypes.NotANumber, input, this);
 	};
 
-	constructor(data, opts = {}) {
-		super(TagInt16.Type, data, {
+	constructor(alias, data, opts = {}) {
+		super(alias,TagInt16.Type, data, {
 			...opts,
 			validate: TagInt16.Validator,
 		});

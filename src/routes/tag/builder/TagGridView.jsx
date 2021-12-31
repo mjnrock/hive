@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Segment, Message, Grid, Header } from "semantic-ui-react";
 
 import $Util from "../../../lib/util/package";
@@ -42,7 +42,7 @@ const lookup = type => {
 	return map[ colors[ type] ];
 };
 
-export function Tag({ tag } = {}) {
+export function TagGridView({ tag } = {}) {
 	const [state, setState] = useState(tag);
 
 	useEffect(() => {
@@ -58,7 +58,7 @@ export function Tag({ tag } = {}) {
 			let num = $Util.Dice.random($TagUint8.MinValue, $TagUint8.MaxValue);
 			let newTag = state.tag;
 			
-			newTag._data.push(new $TagUint8(num, {}));
+			newTag._data.push(new $TagUint8(`Uint-${ num }`, num, {}));
 
 			setState({
 				tag: newTag,
@@ -95,20 +95,18 @@ export function Tag({ tag } = {}) {
 						};
 
 						return (
-							<>
-								<Grid.Column key={ i }>
-									<Grid.Row>
-										<Header as="h5">{ key }</Header>
-									</Grid.Row>
+							<Grid.Column key={ key }>
+								<Grid.Row>
+									<Header as="h5">{ key }</Header>
+								</Grid.Row>
 
-									<Grid.Row style={{
-										paddingTop: 4,
-										fontFamily: `monospace`,
-									}}>
-										<div style={ css[ key ] || {} }>{ result }</div>
-									</Grid.Row>
-								</Grid.Column>
-							</>
+								<Grid.Row style={{
+									paddingTop: 4,
+									fontFamily: `monospace`,
+								}}>
+									<div style={ css[ key ] || {} }>{ result }</div>
+								</Grid.Row>
+							</Grid.Column>
 						);
 					})
 				}
@@ -126,7 +124,7 @@ export function Tag({ tag } = {}) {
 							let results = [];
 							if(value instanceof $Tag) {
 								results.push(
-									<Tag key={ key } tag={ value } />
+									<TagGridView key={ key } tag={ value } />
 								);
 							} else if(typeof value === "object") {
 								results = JSON.stringify(value);
@@ -135,11 +133,9 @@ export function Tag({ tag } = {}) {
 							}
 
 							return (
-								<>
-									<Grid.Row key={ key }>
-										{ results }
-									</Grid.Row>
-								</>
+								<Grid.Row key={ key }>
+									{ results }
+								</Grid.Row>
 							);
 						})
 						:
@@ -232,3 +228,5 @@ export function Tag({ tag } = {}) {
 		</Table.Row>
 	</Table.Footer>
 </Table> */}
+
+export default TagGridView;

@@ -42,7 +42,7 @@ const lookup = type => {
 	return map[ colors[ type] ];
 };
 
-export function TagList({ tag } = {}) {
+export function TagListView({ tag } = {}) {
 	const [state, setState] = useState(tag);
 
 	useEffect(() => {
@@ -70,44 +70,64 @@ export function TagList({ tag } = {}) {
 		return null;
 	}
 
-	console.log(state.tag.type === $Tag.Types.Compound)
-
 	return (
 		<List.Item>
 			{
 				state.tag.type === $Tag.Types.Compound ? (
 					<List.Item>
-						<Grid columns={ 2 }>
-							<Grid.Column width={ 1 } style={{
-								color: lookup(state.tag.type),
-								fontFamily: `monospace`,
-								fontWeight: `bold`,
-							}}>
-								{ tag.type }
-							</Grid.Column>
-							<Grid.Column width={ 15 }>
-								{
-									Object.values(state.tag._data).map((tag, i) => <TagList key={ i } tag={ tag } />)
-								}
-							</Grid.Column>
-						</Grid>
+						<div className="pa2 mb2 b ba br2 b--black-10">
+							<Grid columns={ 2 }>
+								<Grid.Column
+									width={ 1 }
+									style={{
+										fontWeight: `bold`,
+									}}
+									textAlign="right"
+								>
+									{ tag.alias }
+								</Grid.Column>
+
+								<Grid.Column width={ 15 }>
+									<div style={{
+										color: lookup(state.tag.type),
+										fontFamily: `monospace`,
+										textAlign: `left`,
+									}}>
+										{ tag.type }
+									</div>
+									<br />
+									{
+										Object.values(state.tag._data).map((tag, i) => <TagListView key={ i } tag={ tag } />)
+									}
+								</Grid.Column>
+							</Grid>
+						</div>
 					</List.Item>
 				) : (
 					<List.Item>
-						<Grid columns={ 2 }>
-							<Grid.Column width={ 1 } style={{
-								color: lookup(state.tag.type),
-								fontFamily: `monospace`,
-								fontWeight: `bold`,
-							}} textAlign="center" verticalAlign="middle">
-								{ tag.type }
-							</Grid.Column>
-							<Grid.Column width={ 15 }>
-								<Message>
-									{ state.tag._data }
-								</Message>
-							</Grid.Column>
-						</Grid>
+						<div className={ `pa2 mb2 b ba br2 b--black-10 ` }>
+							<Grid>
+								<Grid.Column
+									style={{
+										fontWeight: `bold`,
+									}}
+									textAlign="right"
+								>
+									{ tag.alias }
+								</Grid.Column>
+
+								<Grid.Column
+									style={{
+										color: lookup(state.tag.type),
+										fontFamily: `monospace`,
+									}}
+									textAlign="left"
+									verticalAlign="middle"
+								>
+									{ tag.type }
+								</Grid.Column>
+							</Grid>
+						</div>
 					</List.Item>
 				)
 			}
@@ -164,3 +184,5 @@ export function TagList({ tag } = {}) {
 		</Grid.Column>
 	</Grid>
 </Segment> */}
+
+export default TagListView;
