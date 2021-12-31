@@ -8,6 +8,7 @@
 		"@testing-library/user-event": "^12.1.10",
 		"aframe": "^1.2.0",
 		"aframe-react": "^4.4.0",
+		"classnames": "^2.3.1",
 		"is-base64": "^1.1.0",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
@@ -53,6 +54,9 @@
 		]
 	},
 	"devDependencies": {
-		"esm": "^3.2.25"
+		"autoprefixer": "^10.4.1",
+		"esm": "^3.2.25",
+		"postcss": "^8.4.5",
+		"tailwindcss": "^3.0.8"
 	}
 }
