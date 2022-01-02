@@ -220,9 +220,9 @@ export function isSameText(a, b) {
         : a === b;
 }
 
-export function arrayRange(input) {
+export function arrayRange(input, length) {
 	if(typeof input === "function") {
-		return Array.apply(null, Array(input)).map((x, i) => input(i));
+		return arrayRange(length).map((x, i) => input(i));
 	}
 
 	return Array.apply(null, Array(input)).map((x, i) => i);

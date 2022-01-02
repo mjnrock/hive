@@ -3,9 +3,6 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import Routes from "./routes/package";
 
-import "tachyons/src/tachyons.css";
-import "./css/grid.tachyons.css";
-import "semantic-ui-css/semantic.min.css";
 //! NOTE: The Tailwind final css file doesn't add entries unless it *explicitly* evaluates that option -- Tag coloring appears broken sometimes as a result of this
 /**
  * A present workaround is to explicitly load each color that might be used, so that the entries are put into the final css file.

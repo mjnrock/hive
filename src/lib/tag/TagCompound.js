@@ -20,6 +20,9 @@ export class TagCompound extends Tag {
 	}
 
 	//TODO 	Rework for Compound
+	get data() {
+		return super.data;
+	}
 	set data(data) {
 		let final = data.slice(0, Math.min(data.length, ~~this.meta.size || data.length));
 

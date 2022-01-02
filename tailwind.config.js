@@ -3,17 +3,16 @@ module.exports = {
 	theme: {
 		extend: {
 			colors: {
-				tagsss: {
-					blargs: {
+				tags: {
+					green: {
 						700: "#016936",
+					},				
+					teal: {
+						700: "#008080",
 					},
-				},
-				
-				tealXXX: {
-					700: "#008080",
-				},
-				greyXXX: {
-					700: "#A0A0A0",
+					grey: {
+						700: "#A0A0A0",
+					},
 				},
 			}
 		},

@@ -1,12 +1,7 @@
 import React from "react";
-import { Header, List } from "semantic-ui-react";
-
-import { Context } from "../../../App";
-import { ThrowError, ErrorTypes as ErrorType } from "../../../lib/tag/Errors";
 
 import Tags from "../../../lib/tag/package";
-import { TagGridView } from "./TagGridView";
-import { TagListView } from "./TagListView";
+import TagContainer from "./TagContainer";
 
 export function Default() {
 	const uint2 = new Tags.Uint8(`Uint-1`, 65, {
@@ -33,15 +28,11 @@ export function Default() {
 	], {});
 
 	return (
-		<>
-			<Header as="h2" textAlign="center">Table View</Header>
-			<TagGridView tag={ comp } />
-
-			<Header as="h2" textAlign="center">List View</Header>
-			<List>
-				<TagListView tag={ comp } />
-			</List>
-		</>
+		<div
+			className="p-2 text-gray-700"
+		>
+			<TagContainer tag={ comp } />
+		</div>
 	);
 }
 
