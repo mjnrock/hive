@@ -85,7 +85,7 @@ export function TagContainer({ tag } = {}) {
 
 	if(state.tag.type === $Tag.Types.Compound) {
 		return (
-			<div className="flex p-2 mb-2 border rounded bg-black-10">
+			<div className="flex p-2 mb-2 border rounded">
 				<div>
 					<div className="font-bold mr-6">
 						{ state.tag.alias }
@@ -110,7 +110,7 @@ export function TagContainer({ tag } = {}) {
 		);
 	} else {
 		return (
-			<div className={ `flex p-2 mb-2 border rounded bg-black-10 hover:bg-tags-${ colors[ state.tag.type ] }-700 hover:text-white` }>
+			<div className={ `flex p-2 mb-2 border rounded bg-gray-100 hover:bg-tags-${ colors[ state.tag.type ] }-700 hover:text-white` }>
 				<div className="font-bold mr-6">
 					{ state.tag.alias }
 				</div>

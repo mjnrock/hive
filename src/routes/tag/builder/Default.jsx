@@ -28,47 +28,57 @@ const comp = new Tags.Compound(`Comp-2`, [
 	str,
 ], {});
 
-function recurseList(input) {
-	if(Array.isArray(input)) {
-		return recurseList(input);
-	}
+function renderTabs(tab, rootTag) {
+	const tabs = {
+		Schema: tag => (
+			<TagContainer tag={ tag } />
+		),
+		Entry: tag => (
+			<div>
+				Tab Entry
+			</div>
+		),
+		Records: tag => (
+			<div>
+				Tab Records
+			</div>
+		),
+	};
 
-	return input
+	return tabs[ tab ](rootTag);
 }
 
 export function Default() {
 	const [ search, setSearch ] = useState("");
-	const [ tags, setTags ] = useState([ 1, 2, 3 ]);
+	const [ currentTab, setCurrentTab ] = useState("Schema");
 	const [ rootTag, setRootTag ] = useState(comp);
 
 	return (
-		<div className="flex">
-			<div className="w-1/6 p-4 bg-gray-200 text-gray-700">
-				{
-					<ListPane.TagCompound tag={ rootTag } />
-				}
+		<div className="flex flex-col grow">
+			<div className="m-6 mb-0 w-full">
+				<input className="border p-2 m-2 rounded text-gray-700 w-full" type="text" value={ search } placeholder="Command Pane (Ctlr + K)" onChange={ e => setSearch(e.target.value) }/>
 			</div>
+			
+			<div className="m-6 p-2">
+				<div className="flex grow text-center">
+					{
+						[ `Schema`, `Entry`, `Records` ].map(key => {
+							return (
+								<div
+									className={ `flex-auto cursor-pointer hover:font-bold hover:border-b-2 hover:border-b-blue-200 pt-3 pb-3 ` + (currentTab === key ? `font-bold border-b-2 border-b-blue-400` : ``) }
+									onClick={ e => setCurrentTab(key) }
+								>
+									{ key }
+								</div>
+							);
+						})
+					}
+				</div>
 
-			<div className="w-5/6">
-				<div className="flex flex-col">
-					<input className="border p-2 m-2 rounded" type="text" value={ search } placeholder="Command Pane (Ctlr + K)" onChange={ e => setSearch(e.target.value) }/>
-
-					<TagContainer tag={ rootTag } />
-					
-					<div className="text-left">
-						<div className="flex grow text-center">
-							<div className="flex-auto">Tab 1</div>
-							<div className="flex-auto">Tab 2</div>
-							<div className="flex-auto">Tab 3</div>
-						</div>
-
-						<ul>
-							<li>1</li>
-							<li>2</li>
-							<li>3</li>
-							<li>4</li>
-						</ul>
-					</div>
+				<div className="p-4">
+					{
+						renderTabs(currentTab, rootTag)
+					}
 				</div>
 			</div>
 		</div>
