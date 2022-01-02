@@ -50,9 +50,26 @@ export function Default() {
 			</div>
 
 			<div className="w-5/6">
-				<input className="border p-2 m-2 rounded" type="text" value={ search } onChange={ e => setSearch(e.target.value) }/>
+				<div className="flex flex-col">
+					<input className="border p-2 m-2 rounded" type="text" value={ search } placeholder="Command Pane (Ctlr + K)" onChange={ e => setSearch(e.target.value) }/>
 
-				<TagContainer tag={ rootTag } />
+					<TagContainer tag={ rootTag } />
+					
+					<div className="text-left">
+						<div className="flex grow text-center">
+							<div className="flex-auto">Tab 1</div>
+							<div className="flex-auto">Tab 2</div>
+							<div className="flex-auto">Tab 3</div>
+						</div>
+
+						<ul>
+							<li>1</li>
+							<li>2</li>
+							<li>3</li>
+							<li>4</li>
+						</ul>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
