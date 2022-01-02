@@ -43,7 +43,12 @@ const lookup = type => {
 };
 
 export function TagContainer({ tag } = {}) {
-	const [state, setState] = useState(tag);
+	const [config, setConfig] = useState({
+		currentType: $Tag.Types.Bool,
+	});
+	const [state, setState] = useState({
+		tag,
+	});
 
 	useEffect(() => {
 		let newState = {
