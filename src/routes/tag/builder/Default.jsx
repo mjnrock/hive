@@ -67,9 +67,9 @@ function renderTabs(tab, rootTag) {
 
 			return (
 				<div className="inline-flex flex-col grow mt-1 container">
-					<div className="flex flex-row grow mb-2 text-gray-700 bg-gray-100 shadow-gray-300 shadow">{
+					<div className="ml-4 flex flex-row grow mb-2 text-gray-700 bg-gray-100 shadow-gray-300 shadow">{
 						records.map(tag => (
-							<div className={ `flex-1 p-1 pl-2 font-bold` } key={ tag.alias }>
+							<div className={ `flex-1 p-1 pl-2 tracking-widest font-sansserif` } key={ tag.alias }>
 								{ tag.alias }
 								<br />
 
@@ -80,25 +80,28 @@ function renderTabs(tab, rootTag) {
 						))
 					}</div>
 					
-					<div className="flex flex-row whitespace-nowrap mb-1 border rounded text-gray-700 shadow-gray-200 shadow">{
-						records.map((tag, i) => {
-							if(tag.type === Tags.Types.Compound) {
+					<div className="flex flex-row whitespace-nowrap text-gray-700">
+						<div className="mr-2 pt-2 font-bold font-mono text-sm h-full text-gray-300">{ 1 }</div>
+						<div className="flex-auto flex flex-row mb-1 border rounded shadow-gray-200 shadow">{
+							records.map((tag, i) => {
+								if(tag.type === Tags.Types.Compound) {
+									return (
+										<div className="mx-3 my-1 flex-auto">
+											{
+												renderTabs("Records", tag)
+											}
+										</div>
+									);
+								}
+								
 								return (
-									<div className="mx-3 my-1 flex-auto">
-										{
-											renderTabs("Records", tag)
-										}
+									<div className="flex-auto">
+										<div className={ `p-1 pl-2` } key={ i }>{ tag.data.toString() }</div>
 									</div>
 								);
-							}
-							
-							return (
-								<div className="flex-auto">
-									<div className={ `p-1 pl-2` } key={ i }>{ tag.data.toString() }</div>
-								</div>
-							);
-						})
-					}</div>
+							})
+						}</div>
+					</div>
 				</div>
 			);
 		},
