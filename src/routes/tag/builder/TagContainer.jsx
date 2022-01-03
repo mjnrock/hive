@@ -42,6 +42,18 @@ const lookup = type => {
 	return map[ colors[ type] ];
 };
 
+/**
+ * bg-tags-green-700
+ * bg-tags-teal-700
+ * bg-tags-grey-700
+ * text-tags-green-700
+ * text-tags-teal-700
+ * text-tags-grey-700
+ * hover:bg-tags-green-700
+ * hover:bg-tags-teal-700
+ * hover:bg-tags-grey-700
+ */
+
 export function TagContainer({ tag } = {}) {
 	const [config, setConfig] = useState({
 		currentType: $Tag.Types.Bool,

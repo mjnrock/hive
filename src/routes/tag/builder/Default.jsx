@@ -28,6 +28,24 @@ const comp = new Tags.Compound(`Comp-2`, [
 	str,
 ], {});
 
+const colors = {
+	[ Tags.Types.Bool ]: "violet",
+
+	[ Tags.Types.Uint8 ]: "teal",
+	[ Tags.Types.Uint16 ]: "teal",
+	[ Tags.Types.Uint32 ]: "teal",
+
+	[ Tags.Types.Int8 ]: "blue",
+	[ Tags.Types.Int16 ]: "blue",
+	[ Tags.Types.Int32 ]: "blue",
+
+	[ Tags.Types.String ]: "green",
+	[ Tags.Types.Char ]: "green",
+
+	[ Tags.Types.List ]: "black",
+	[ Tags.Types.Compound ]: "grey",
+};
+
 function renderTabs(tab, rootTag) {
 	const tabs = {
 		Schema: tag => (
@@ -38,11 +56,52 @@ function renderTabs(tab, rootTag) {
 				Tab Entry
 			</div>
 		),
-		Records: tag => (
-			<div>
-				Tab Records
-			</div>
-		),
+		Records: (rootTag) => {
+			//TODO Allow for recursive tag selection with nested dot selection
+			//TODO This is setup for a 1-record tag.data paradigm -- convert to multi row and use column-based approach for css reasons
+			if(rootTag.type !== Tags.Types.Compound) {
+				return null;
+			}
+
+			const records = rootTag.data;
+
+			return (
+				<div className="inline-flex flex-col grow mt-1 container">
+					<div className="flex flex-row grow mb-2 text-gray-700 bg-gray-100 shadow-gray-300 shadow">{
+						records.map(tag => (
+							<div className={ `flex-1 p-1 pl-2 font-bold` } key={ tag.alias }>
+								{ tag.alias }
+								<br />
+
+								<div className={ `text-neutral-100 text-tags-${ colors[ tag.type ] }-700 font-mono text-xs` }>
+									{ tag.type }
+								</div>								
+							</div>
+						))
+					}</div>
+					
+					<div className="flex flex-row whitespace-nowrap mb-1 border rounded text-gray-700 shadow-gray-200 shadow">{
+						records.map((tag, i) => {
+							if(tag.type === Tags.Types.Compound) {
+								return (
+									<div className="mx-3 my-1 flex-auto">
+										{
+											renderTabs("Records", tag)
+										}
+									</div>
+								);
+							}
+							
+							return (
+								<div className="flex-auto">
+									<div className={ `p-1 pl-2` } key={ i }>{ tag.data.toString() }</div>
+								</div>
+							);
+						})
+					}</div>
+				</div>
+			);
+		},
 	};
 
 	return tabs[ tab ](rootTag);
@@ -56,7 +115,7 @@ export function Default() {
 	return (
 		<div className="flex flex-col grow">
 			<div className="m-6 mb-0 w-full">
-				<input className="border p-2 m-2 rounded text-gray-700 w-full" type="text" value={ search } placeholder="Command Pane (Ctlr + K)" onChange={ e => setSearch(e.target.value) }/>
+				<input className="border p-2 m-2 rounded text-gray-700 container" type="text" value={ search } placeholder="Command Pane (Ctlr + K)" onChange={ e => setSearch(e.target.value) }/>
 			</div>
 			
 			<div className="m-6 p-2">
@@ -67,6 +126,7 @@ export function Default() {
 								<div
 									className={ `flex-auto cursor-pointer hover:font-bold hover:border-b-2 hover:border-b-blue-200 pt-3 pb-3 ` + (currentTab === key ? `font-bold border-b-2 border-b-blue-400` : ``) }
 									onClick={ e => setCurrentTab(key) }
+									key={ key }
 								>
 									{ key }
 								</div>
