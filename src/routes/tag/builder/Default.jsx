@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronRightIcon } from "@heroicons/react/outline";
+import { SearchIcon } from "@heroicons/react/outline";
 
 import Tags from "./../../../lib/tag/package";
 import ListPane from "./pane/list/package";
@@ -66,8 +66,8 @@ function renderTabs(tab, rootTag) {
 			const records = rootTag.data;
 
 			return (
-				<div className="inline-flex flex-col grow mt-1 container">
-					<div className="ml-4 flex flex-row grow mb-2 text-gray-700 bg-gray-100 shadow-gray-300 shadow">{
+				<div className="container inline-flex flex-col mt-1 grow">
+					<div className="flex flex-row mb-2 ml-4 text-gray-700 bg-gray-100 shadow grow shadow-gray-300">{
 						records.map(tag => (
 							<div className={ `flex-1 p-1 pl-2 tracking-widest font-sansserif` } key={ tag.alias }>
 								{ tag.alias }
@@ -80,13 +80,13 @@ function renderTabs(tab, rootTag) {
 						))
 					}</div>
 					
-					<div className="flex flex-row whitespace-nowrap text-gray-700">
-						<div className="mr-2 pt-2 font-bold font-mono text-sm h-full text-gray-300">{ 1 }</div>
-						<div className="flex-auto flex flex-row mb-1 border rounded shadow-gray-200 shadow">{
+					<div className="flex flex-row text-gray-700 whitespace-nowrap">
+						<div className="h-full pt-2 mr-2 font-mono text-sm font-bold text-gray-300">{ 1 }</div>
+						<div className="flex flex-row flex-auto mb-1 border rounded shadow shadow-gray-200">{
 							records.map((tag, i) => {
 								if(tag.type === Tags.Types.Compound) {
 									return (
-										<div className="mx-3 my-1 flex-auto">
+										<div className="flex-auto mx-3 my-1" key={ tag.id }>
 											{
 												renderTabs("Records", tag)
 											}
@@ -95,7 +95,7 @@ function renderTabs(tab, rootTag) {
 								}
 								
 								return (
-									<div className="flex-auto">
+									<div className="flex-auto" key={ tag.id }>
 										<div className={ `p-1 pl-2` } key={ i }>{ tag.data.toString() }</div>
 									</div>
 								);
@@ -110,19 +110,20 @@ function renderTabs(tab, rootTag) {
 	return tabs[ tab ](rootTag);
 }
 
-export function Default() {
+export function TagBuilderDefault() {
 	const [ search, setSearch ] = useState("");
 	const [ currentTab, setCurrentTab ] = useState("Schema");
 	const [ rootTag, setRootTag ] = useState(comp);
 
 	return (
 		<div className="flex flex-col grow">
-			<div className="m-6 mb-0 w-full">
-				<input className="border p-2 m-2 rounded text-gray-700 container" type="text" value={ search } placeholder="Command Pane (Ctlr + K)" onChange={ e => setSearch(e.target.value) }/>
+			<div className="relative m-6 group">
+				<SearchIcon width="20" height="20" className="absolute left-3 top-1/2 -mt-2.5 text-gray-400 pointer-events-none group-focus-within:text-blue-500" />
+				<input className="w-full py-2 pl-10 text-sm leading-6 text-gray-900 placeholder-gray-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ring-1 ring-gray-200" type="text" value={ search } placeholder="Command Pane (Ctlr + K)" onChange={ e => setSearch(e.target.value) }/>
 			</div>
 			
-			<div className="m-6 p-2">
-				<div className="flex grow text-center">
+			<div className="p-2 m-6">
+				<div className="flex text-center grow">
 					{
 						[ `Schema`, `Entry`, `Records` ].map(key => {
 							return (
@@ -148,4 +149,4 @@ export function Default() {
 	);
 }
 
-export default Default;
+export default TagBuilderDefault;
