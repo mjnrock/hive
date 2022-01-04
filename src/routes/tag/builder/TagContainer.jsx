@@ -112,7 +112,7 @@ export function TagContainer({ tag, css, onDoubleClick } = {}) {
 					{
 						Object.values(state.tag.data).map((tag, i) => (
 							//TODO:	This isn't in the right place, nor does it work fully, but it's a working POC of the double-click edit
-							<div className="flex flex-row">
+							<div className="flex flex-row" key={ i }>
 								{
 									state.activeTag && (state.activeTag.id === tag.id) ? (
 										<div className="relative m-6 group">
@@ -147,7 +147,7 @@ export function TagContainer({ tag, css, onDoubleClick } = {}) {
 		);
 	} else {
 		children = (
-			<div className={ `flex p-2 mb-2 border rounded bg-gray-100 hover:bg-tags-${ colors[ state.tag.type ] }-700 hover:text-white` }>
+			<div className={ `flex p-2 border rounded bg-gray-100 hover:bg-tags-${ colors[ state.tag.type ] }-700 hover:text-white` }>
 				<div className={ `text-left font-mono mr-6 font-normal bg-black-50 bg-tags-${ colors[ state.tag.type ] }-700 text-white pl-1 pr-1 border rounded border-white text-center text-sm` }>
 					{ state.tag.type }
 				</div>
