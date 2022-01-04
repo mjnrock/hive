@@ -54,12 +54,11 @@ const lookup = type => {
  * hover:bg-tags-grey-700
  */
 
-export function TagContainer({ tag } = {}) {
-	const [config, setConfig] = useState({
-		currentType: $Tag.Types.Bool,
-	});
+export function TagContainer({ tag, css, onDoubleClick } = {}) {
 	const [state, setState] = useState({
 		tag,
+		activeTag: null,
+		activeTagAlias: "",
 	});
 
 	useEffect(() => {
@@ -95,47 +94,77 @@ export function TagContainer({ tag } = {}) {
 		return null;
 	}
 
+	let children = null;
 	if(state.tag.type === $Tag.Types.Compound) {
-		return (
-			<div className="flex p-2 mb-2 border rounded">
-				<div>
-					<div className="font-bold mr-6">
-						{ state.tag.alias }
-					</div>
-
+		children = (
+			<div className="flex flex-col p-2 mb-2 border border-gray-300 rounded">
+				<div className="flex flex-row mb-4">
 					<div className={ `text-left font-mono mr-6 bg-tags-${ colors[ state.tag.type ] }-700 text-white pl-1 pr-1 border rounded text-center text-sm` }>
 						{ state.tag.type }
 					</div>
+					
+					<div className="mr-6 font-bold">
+						{ state.tag.alias }
+					</div>
 				</div>
 
-				<div className="mb-4 w-full">
+				<div className="mb-2 ml-8">
 					{
-						Object.values(state.tag.data).map((tag, i) => <TagContainer key={ i } tag={ tag } />)
+						Object.values(state.tag.data).map((tag, i) => (
+							//TODO:	This isn't in the right place, nor does it work fully, but it's a working POC of the double-click edit
+							<div className="flex flex-row">
+								{
+									state.activeTag && (state.activeTag.id === tag.id) ? (
+										<div className="relative m-6 group">
+											<div className={ `absolute left-3 top-1/2 -mt-2.5 text-left font-mono mr-6 bg-tags-${ colors[ state.tag.type ] }-700 text-white pl-1 pr-1 border rounded text-center text-sm` }>
+												{ state.tag.type }
+											</div>
+											
+											<input className="w-full py-2 pl-[100px] text-sm leading-6 text-gray-900 placeholder-gray-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none ring-1 ring-gray-200" type="text" value={ state.activeTagAlias } placeholder="Command Pane (Ctlr + K)" onKeyPress={ e => {
+												if(e.key === "Enter") {
+													setState({ ...state, activeTag: null, activeTagAlias: null });
+												}
+											}} onChange={ e => {
+												tag.alias = e.target.value;
+
+												setState({ ...state, activeTagAlias: tag.alias });
+											}}/>
+										</div>
+									) : (
+										<TagContainer css="w-full" key={ i } tag={ tag } onDoubleClick={ e => setState({ ...state, activeTag: tag, activeTagAlias: tag.alias }) } />
+									)
+								}
+							</div>
+						))
 					}
 
 					<button
-						className="font-mono text-sm p-2 border drop-shadow rounded border-blue-400 text-blue-400 bg-white hover:text-white hover:bg-blue-400"
+						className="p-2 font-mono text-sm text-blue-400 bg-white border border-blue-400 rounded drop-shadow hover:text-white hover:bg-blue-400"
 						onClick={ handleEvent }
 					>Add Tag</button>
 				</div>
 			</div>
 		);
 	} else {
-		return (
+		children = (
 			<div className={ `flex p-2 mb-2 border rounded bg-gray-100 hover:bg-tags-${ colors[ state.tag.type ] }-700 hover:text-white` }>
-				<div className="font-bold mr-6">
-					{ state.tag.alias }
-				</div>
-
 				<div className={ `text-left font-mono mr-6 font-normal bg-black-50 bg-tags-${ colors[ state.tag.type ] }-700 text-white pl-1 pr-1 border rounded border-white text-center text-sm` }>
 					{ state.tag.type }
 				</div>
 
-				<div className="font-mono bg-gray-200 text-gray-700 pl-2 pr-2">
-					{ state.tag.data }
+				<div className="mr-6 font-bold">
+					{ state.tag.alias }
 				</div>
 			</div>
 		);
 	}
+
+	return (
+		<div className={ `mb-4 ${ css }` } onDoubleClick={ onDoubleClick }>
+			{
+				children
+			}
+		</div>
+	)
 }
 export default TagContainer;
