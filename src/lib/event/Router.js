@@ -33,6 +33,7 @@ export class Router {
 	 */
 	addRoutes(routes) {
 		for(let [ route, controller ] of Object.entries(routes)) {
+			this.routes.set(route, controller);
 			if(typeof route === "function" && controller instanceof Controller) {
 				this.routes.set(route, controller);
 			}
@@ -90,6 +91,21 @@ export class Router {
 
 		return this;
 	}
+};
+
+export const Triggers = {
+	Loose(input) {
+		return trigger => trigger == input;
+	},
+	Equals(type) {
+		return trigger => trigger === type;
+	},
+	Includes(types = []) {
+		return trigger => types.includes(trigger);
+	},
+	Match(regex) {
+		return trigger => regex.test(trigger.toString());
+	},
 };
 
 export default Router;
