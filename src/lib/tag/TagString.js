@@ -9,7 +9,7 @@ export class TagString extends Tag {
 			return true;
 		}
 		
-		ThrowError(ErrorTypes.InvalidInput, input, this);
+		// ThrowError(ErrorTypes.InvalidInput, input, this);
 	};
 
 	constructor(alias, data, opts = {}) {

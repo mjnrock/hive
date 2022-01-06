@@ -12,10 +12,10 @@ export class TagUint16 extends Tag {
 				return true;
 			}
 
-			ThrowError(ErrorTypes.OutOfRange, input, this);
+			// ThrowError(ErrorTypes.OutOfRange, input, this);
 		}
 		
-		ThrowError(ErrorTypes.NotANumber, input, this);
+		// ThrowError(ErrorTypes.NotANumber, input, this);
 	};
 
 	constructor(alias, data, opts = {}) {

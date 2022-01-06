@@ -2,7 +2,11 @@ import { validate, v4 as uuid } from "uuid";
 import { capitalizeFirstLetter } from "../util/helper";
 import tagTypes from "./tagType";
 
+import { getClass } from "./package";
+
 export class Tag {
+	static Validator = input => true;
+
 	constructor(alias, type, data, { meta = {}, id, validate, namespace } = {}) {
 		this.id = id || uuid();
 		this.alias = alias;
@@ -12,7 +16,12 @@ export class Tag {
 			namespace,
 			...meta,
 		};
+
 		this.data = data;
+
+		if(this.data == null) {
+			this._data = null;
+		}
 	}
 
 	get type() {
@@ -48,6 +57,13 @@ export class Tag {
 		return this._data;
 	}
 	set data(data) {
+		const clazz = getClass(this.type);
+		if(typeof clazz.Validator === "function") {
+			if(clazz.Validator(data) !== true) {
+				return this;
+			}
+		}
+
 		if(typeof this.meta.validate === "function") {
 			if(this.meta.validate.call(this, data) === true) {
 				this._data = data;
@@ -88,7 +104,7 @@ export class Tag {
 	}
 
 	static FromObject(obj) {
-		const ctx = new Tag(obj.type, obj.data, { meta: obj.meta, alias: obj.meta.alias, id: obj.meta.id });
+		const ctx = Tag.Create(obj.type, obj.data, { meta: obj.meta, alias: obj.meta.alias, id: obj.meta.id });
 
 		if(ctx._type === Tag.Types.Compound  && Array.isArray(ctx._data)) {
 			for(let i = 0; i < ctx._data.length; i++) {
@@ -109,12 +125,12 @@ export class Tag {
 	}
 
 	static Create(...args) {
-		return new Tag(...args	);
+		return new this(...args);
 	}
 	static Factory(qty, args = []) {
 		let ctxs = [];
 		for(let i = 0; i < qty; i++) {
-			ctxs.push(new Tag(...args));
+			ctxs.push(Tag.Create(...args));
 		}
 
 		return ctxs;
@@ -136,5 +152,6 @@ Tag.Types = (() => {
 
 	return typeObj;
 })();
+Tag.Type = Tag.Types.Any;
 
 export default Tag;

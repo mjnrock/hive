@@ -11,7 +11,7 @@ import TagString from "./TagString";
 import TagList from "./TagList";
 import TagCompound from "./TagCompound";
 
-export default {
+const obj = {
 	Types: Tag.Types,
 
 	Tag,
@@ -27,3 +27,18 @@ export default {
 	List: TagList,
 	Compound: TagCompound,
 };
+
+
+obj.getClass = type => {
+	for(let [ key, value ] of Object.entries(obj)) {
+		if(type.toUpperCase() === key.toUpperCase()) {
+			return value;
+		}
+	}
+
+	return Tag;
+}
+
+export const getClass = obj.getClass;
+
+export default obj;

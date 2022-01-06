@@ -4,7 +4,7 @@ export class Controller {
 	 * 	As such, the <Controller> can be used as a filter, as well, to invoke a specific method
 	 * 	associated with that particular input.
 	 * 
-	 * NOTE: Because it's a <Map>, if using string keys, they are *case-sensitive* (i.e. "EventName" !== "eventName")
+	 * NOTE: Because it's a <Map>, if using string keys, they are *case-sensitive/strict* (e.g. "EventName" !== "eventName", 0 !== "0", etc.)
 	 */
 	constructor({ handlers = {}, hooks = {}, state = {} } = {}) {
 		if(Array.isArray(handlers)) {
