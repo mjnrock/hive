@@ -57,6 +57,10 @@ export class Tag {
 		return this._data;
 	}
 	set data(data) {
+		if(data === null) {
+			this._data = null;
+		}
+
 		const clazz = getClass(this.type);
 		if(typeof clazz.Validator === "function") {
 			if(clazz.Validator(data) !== true) {

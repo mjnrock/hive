@@ -22,7 +22,11 @@ export class TagCompound extends Tag {
 		return super.data;
 	}
 	set data(input = []) {
-		if(Array.isArray(input)) {
+		if(input === null) {
+			this._data = null;
+
+			return;
+		} else if(Array.isArray(input)) {
 			let newData = input.reduce((a, v) => {
 				if(TagCompound.Validator(v) === true) {
 					if(typeof this.validate === "function") {
@@ -108,21 +112,23 @@ export class TagCompound extends Tag {
 		return false;
 	}
 	mergeTagDataById(id, data, isArray = false) {
-		for(let tag of this.data) {
-			if(tag.id === id) {
-				if(isArray === true) {
-					tag.data = [
-						...tag.data,
-						...data,
-					];
-				} else {
-					tag.data = {
-						...tag.data,
-						...data,
-					};
+		if(typeof tag.data === "object") {
+			for(let tag of this.data) {
+				if(tag.id === id) {
+					if(isArray === true) {
+						tag.data = [
+							...tag.data,
+							...data,
+						];
+					} else {
+						tag.data = {
+							...tag.data,
+							...data,
+						};
+					}
+	
+					return tag;
 				}
-
-				return tag;
 			}
 		}
 

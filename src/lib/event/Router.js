@@ -69,6 +69,7 @@ export class Router {
 			}
 		}
 
+		let finalResult;
 		this.routes.forEach((controller, route) => {
 			if(configShortCircuit) {
 				return this;
@@ -81,6 +82,8 @@ export class Router {
 					this.hooks.each(result, controller.state, trigger, args);
 				}
 
+				finalResult = result;
+
 				configShortCircuit = !this.isMultiMatch;
 			}
 		});
@@ -89,7 +92,7 @@ export class Router {
 			this.hooks.post(trigger, ...args);
 		}
 
-		return this;
+		return finalResult;
 	}
 };
 

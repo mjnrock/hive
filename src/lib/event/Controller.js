@@ -6,7 +6,7 @@ export class Controller {
 	 * 
 	 * NOTE: Because it's a <Map>, if using string keys, they are *case-sensitive/strict* (e.g. "EventName" !== "eventName", 0 !== "0", etc.)
 	 */
-	constructor({ handlers = {}, hooks = {}, state = {} } = {}) {
+	constructor({ handlers = {}, state = {} } = {}) {
 		if(Array.isArray(handlers)) {
 			this.handlers = new Map(handlers.map((v, i) => [ i, v ]));	//? Here for things like "ports" or "circuit i/o" kind of stuff where the number-index is intrinsically meaningful
 		} else if(typeof handlers === "object") {
@@ -17,7 +17,6 @@ export class Controller {
 			pre: false,
 			post: false,
 			reducer: false,
-			...hooks,
 		};
 		this.state = state;		//?	Used largely with instances involving reducer hooks
 	}
@@ -73,24 +72,6 @@ export class Controller {
 		return this;
 	}
 
-	addHook(hookType, fn) {
-		if(typeof handler === "function") {
-			this.hooks[ hookType ] = fn;
-		}
-
-		return this;
-	}
-	addHooks(hookObj = {}) {
-		if(typeof hookObj === "object") {
-			this.hooks = {
-				...this.hooks,
-				...hookObj,
-			};
-		}
-
-		return this;
-	}
-
 	/**
 	 * @param {string|any} trigger 
 	 * @param {...any} ...args
@@ -107,7 +88,7 @@ export class Controller {
 			}
 
 			const handler = this.handlers.get(trigger);
-			const result = handler(trigger, ...args);
+			const result = handler([ this.state, trigger, this ], ...args);
 
 			if(typeof this.hooks.reducer === "function") {
 				this.state = this.hooks.reducer(result, this.state);
