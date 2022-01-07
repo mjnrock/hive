@@ -6,7 +6,7 @@ export class Controller {
 	 * 
 	 * NOTE: Because it's a <Map>, if using string keys, they are *case-sensitive/strict* (e.g. "EventName" !== "eventName", 0 !== "0", etc.)
 	 */
-	constructor({ handlers = {}, state = {} } = {}) {
+	constructor({ handlers = {}, hooks = {}, state = {} } = {}) {
 		if(Array.isArray(handlers)) {
 			this.handlers = new Map(handlers.map((v, i) => [ i, v ]));	//? Here for things like "ports" or "circuit i/o" kind of stuff where the number-index is intrinsically meaningful
 		} else if(typeof handlers === "object") {
@@ -17,6 +17,7 @@ export class Controller {
 			pre: false,
 			post: false,
 			reducer: false,
+			...hooks,
 		};
 		this.state = state;		//?	Used largely with instances involving reducer hooks
 	}

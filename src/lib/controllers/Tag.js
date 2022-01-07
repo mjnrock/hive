@@ -2,8 +2,8 @@ import Controller from "../event/Controller";
 
 import Tags from "../tag/package";
 
-export const controller = new Controller({
-	state: new Tags.Compound(),
+export const overlay = {
+	state: () => new Tags.Compound(),
 	handlers: {
 		ADD_TAG: ([ state ], type, alias, ...args) => {
 			if(type instanceof Tags.Tag) {
@@ -45,6 +45,28 @@ export const controller = new Controller({
 		// 	return state;
 		// },
 	}
-});
+};
 
-export default controller;
+export const evaluator = () => Object.fromEntries(Object.entries(overlay).map(([ key, value ]) => {
+	if(typeof value === "function") {
+		return [ key, value() ];
+	}
+
+	return [ key, value ];
+}));
+
+export const factory = (qty = 1) => {
+	let results = [];
+	
+	for(let i = 0; i < qty; i++) {
+		results.push(new Controller(evaluator()));
+	}
+
+	if(qty === 1) {
+		return results[ 0 ];
+	}
+
+	return results;
+};
+
+export default factory;

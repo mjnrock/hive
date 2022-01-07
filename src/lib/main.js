@@ -6,6 +6,6 @@ import Console from "./util/Console";
 import Controller from "./event/Controller";
 import Router from "./event/Router";
 
-import TagController from "./controllers/Tag";
+import TagControllerFactory from "./controllers/Tag";
 
-console.log(TagController)
+console.log(TagControllerFactory(5).map(v => v.state.id));
