@@ -242,7 +242,6 @@ export class Node {
 				nodes.push(new Node({ overlays: opts }));
 			}
 		} else {
-
 			for(let i = 0; i < qty; i++) {
 				nodes.push(new Node(opts));
 			}

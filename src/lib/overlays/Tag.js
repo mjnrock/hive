@@ -1,3 +1,5 @@
+import Node from "./../node/Node";
+
 import Tags from "../tag/package";
 
 export const Tag = target => ({
@@ -35,5 +37,15 @@ export const Tag = target => ({
 		},
 	},
 });
+
+export const factory = (qty = 1) => {
+	let results = Node.Factory(qty, [ Tag ]);
+
+	if(qty === 1) {
+		return results[ 0 ];
+	}
+
+	return results;
+};
 
 export default Tag;
