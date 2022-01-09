@@ -7,7 +7,7 @@ import Proposition from "../util/logic/Proposition";
  * This is a base-level class for when a Node is to be used
  * 	as an optionally-typed recordset repository for some data
  */
-export const Collection = node => ({
+export const Collection = target => ({
 	$iterator(node, overlay) {
 		node[ Symbol.iterator ] = function() {
 			var index = -1;
@@ -24,7 +24,7 @@ export const Collection = node => ({
 		entries: [],
 	},
 	// nodes: {},
-	events: [
+	triggers: [
 		"addEntry",
 		"removeEntry",
 	],
@@ -35,9 +35,9 @@ export const Collection = node => ({
 	},
 	actions: {
 		setSchema(schema) {
-			node.state.schema = schema;
+			target.state.schema = schema;
 
-			return node;
+			return target;
 		},
 
 		addEntry(...entries) {
@@ -46,48 +46,48 @@ export const Collection = node => ({
 				// if(node.state.schema.Conforms(entry)) {
 				// 	node.state.entries.push(entry);
 				// }
-				node.state.entries.push(entry);
+				target.state.entries.push(entry);
 			}
 
-			return node;
+			return target;
 		},
 		removeEntry(...entries) {
-			node.state.entries = node.state.entries.filter(record => !entries.includes(record));
+			target.state.entries = target.state.entries.filter(record => !entries.includes(record));
 
-			return node;
+			return target;
 		},
 		removeEntryByIndex(...indexes) {
 			for(let index of indexes) {
-				delete node.state.entries[ index ];
+				delete target.state.entries[ index ];
 			}
 
-			return node;
+			return target;
 		},
 
 		head(rows = 1) {
 			try {
-				return node.state.entries.slice(0, rows);
+				return target.state.entries.slice(0, rows);
 			} catch(e) {
 				return false;
 			}
 		},
 		tail(rows = 1) {
 			try {
-				return node.state.entries.slice(node.state.entries.length - rows, node.state.entries.length);
+				return target.state.entries.slice(target.state.entries.length - rows, target.state.entries.length);
 			} catch(e) {
 				return false;
 			}
 		},
 		at(index = 0) {
 			try {
-				return node.state.entries[ index ];
+				return target.state.entries[ index ];
 			} catch(e) {
 				return false;
 			}
 		},
 		bt(start, end) {
 			try {
-				return node.state.entries.slice(start, end);
+				return target.state.entries.slice(start, end);
 			} catch(e) {
 				return false;
 			}
@@ -97,8 +97,8 @@ export const Collection = node => ({
 		 */
 		where(condition, resultFlag = 0) {
 			let results = [];
-			for(let i = 0; i < node.state.entries.length; i++) {
-				let entry = node.state.entries[ i ];
+			for(let i = 0; i < target.state.entries.length; i++) {
+				let entry = target.state.entries[ i ];
 
 				if(condition instanceof Proposition ? condition.test(entry) : condition(entry)) {
 					if(resultFlag === 0) {

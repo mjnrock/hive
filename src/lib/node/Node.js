@@ -6,7 +6,7 @@ import Subscribable from "../overlays/Subscribable";
 export class Node {
 	static Registry = new Map();
 
-	constructor({ id = uuid(), state = {}, nodes = [], events = {}, subscribers = [], meta = {}, actions = {}, config = {}, name, overlays = [] } = {}) {
+	constructor({ id = uuid(), state = {}, nodes = [], triggers = {}, subscribers = [], meta = {}, actions = {}, config = {}, name, overlays = [] } = {}) {
 		// Standard Attribute:	Assignment directives
 		this.id = id;
 		this.state = state;
@@ -28,7 +28,7 @@ export class Node {
 		// Dynamic Attributes:	Merge directives
 		this.actions = actions;
 		this.nodes = nodes;
-		this.events = events;
+		this.triggers = triggers;
 		this.subscriptions = subscribers;
 		
 		Node.Registry.set(this.id, this);
@@ -138,37 +138,44 @@ export class Node {
 		}
 	}
 
-	get events() {
-		return this._events;
+	get triggers() {
+		return this._triggers;
 	}
-	set events(newEvents = []) {
-		if(!this._events) {
-			this._events = {};
+	/**
+	 * By using a <Map> here, @trigger can effectively be anything: object, text, number, bool, etc.
+	 * 	As such, the <Controller> can be used as a filter, as well, to invoke a specific method
+	 * 	associated with that particular input.
+	 * 
+	 * NOTE: Because it's a <Map>, if using string keys, they are *case-sensitive/strict* (e.g. "EventName" !== "eventName", 0 !== "0", etc.)
+	 */
+	set triggers(newTriggers = []) {
+		if(!this._triggers) {
+			this._triggers = new Map();
 		}
 
-		if(Array.isArray(newEvents)) {
-			for(let event of newEvents) {
-				if(!(this._events[ event ] instanceof Set)) {
-					this._events[ event ] = new Set();
+		if(Array.isArray(newTriggers)) {
+			for(let event of newTriggers) {
+				if(!(this._triggers.get(event) instanceof Set)) {
+					this._triggers.set(event, new Set());
 				}
 			}
-		} else if(typeof newEvents === "object") {
-			for(let [ event, handlers ] of Object.entries(newEvents)) {
-				if(!(this._events[ event ] instanceof Set)) {
+		} else if(typeof newTriggers === "object") {
+			for(let [ event, handlers ] of Object.entries(newTriggers)) {
+				if(!(this._triggers.get(event) instanceof Set)) {
 					if(Array.isArray(handlers)) {
-						this._events[ event ] = new Set([ ...handlers ]);
+						this._triggers.set(event, new Set([ ...handlers ]));
 					} else if(typeof handlers === "function") {
-						this._events[ event ] = new Set([ handlers ]);
+						this._triggers.set(event, new Set([ handlers ]));
 					}
 				} else {
 					if(Array.isArray(handlers)) {
 						for(let handler of handlers) {
 							if(typeof handler === "function") {
-								this.events[ event ].add(handler);
+								this.triggers.get(event).add(handler);
 							}
 						}
 					} else if(typeof handlers === "function") {
-						this.events[ event ].add(handlers);
+						this.triggers.get(event).add(handlers);
 					}
 				}
 			}

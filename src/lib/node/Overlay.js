@@ -1,31 +1,37 @@
+import Tags from "./../tag/package";
+
 export const merger = {
 	state(node, attribute) {
-		/**
-		 * Create an object-wrapper for state values if
-		 * 	they are not natively an Object
-		 */
-		if(Array.isArray(node.state) || typeof node.state !== "object") {
+		if(attribute instanceof Tags.Tag) {
+			node.state = attribute;
+		} else {
+			/**
+			 * Create an object-wrapper for state values if
+			 * 	they are not natively an Object
+			 */
+			if(Array.isArray(node.state) || typeof node.state !== "object") {
+				node.state = {
+					$value: node.state,
+				};
+			}
+	
+			/**
+			 * Do the same as above for @attribute
+			 */
+			if(Array.isArray(attribute) || typeof attribute !== "object") {
+				attribute = {
+					$value: attribute,
+				};
+			}
+	
+			/**
+			 * Merge any existing state with @attribute
+			 */
 			node.state = {
-				$value: node.state,
+				...node.state,
+				...attribute,
 			};
 		}
-
-		/**
-		 * Do the same as above for @attribute
-		 */
-		if(Array.isArray(attribute) || typeof attribute !== "object") {
-			attribute = {
-				$value: attribute,
-			};
-		}
-
-		/**
-		 * Merge any existing state with @attribute
-		 */
-		node.state = {
-			...node.state,
-			...attribute,
-		};
 	},
 	meta(node, attribute) {
 		node.meta = {
@@ -49,52 +55,8 @@ export const merger = {
 			...attribute,
 		};
 	},
-	events(node, attribute) {
-		if(Array.isArray(attribute)) {
-			/**
-			 * Example: @attribute = [ "type1", "type2", ... ]
-			 * If a string list of events are provided, instantiate the space
-			 */
-			for(let event of attribute) {
-				if(!(node.events[ event ] instanceof Set)) {
-					node.events[ event ] = new Set();
-				}
-			}
-		} else if(typeof attribute === "object") {
-			/**
-			 * If an object with handlers is passed, iterate through the entries
-			 */
-			for(let [ event, handlers ] of Object.entries(attribute)) {
-				/**
-				 * If handler space has not been initialized, do so
-				 */
-				if(!(node.events[ event ] instanceof Set)) {
-					/**
-					 * This differentiation allows for the handlers to either be an array
-					 * 	of functions { event: [ fn1, fn2, ... ] } or simply a function { event: fn1 }
-					 */
-					if(Array.isArray(handlers)) {
-						node._events[ event ] = new Set([ ...handlers ]);
-					} else if(typeof handlers === "function") {
-						node._events[ event ] = new Set([ handlers ]);
-					}
-				} else {
-					/**
-					 * If handler space has been initialized, do the equivalent
-					 * 	assignments as above
-					 */
-					if(Array.isArray(handlers)) {
-						for(let handler of handlers) {
-							if(typeof handler === "function") {
-								node.events[ event ].add(handler);
-							}
-						}
-					} else if(typeof handlers === "function") {
-						node.events[ event ].add(handlers);
-					}
-				}
-			}
-		}
+	triggers(node, newTriggers) {
+		node.triggers = newTriggers;	// .triggers is an UPSERT trap for ._triggers
 	},
 	subscriptions(node, attribute) {
 		node.subscriptions = new Set([

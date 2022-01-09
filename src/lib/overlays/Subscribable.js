@@ -1,6 +1,6 @@
 import Node from "../node/Node";
 
-export const Subscribable = node => ({
+export const Subscribable = target => ({
 	$pre(node, overlay) {
 		node._subscriptions = new Set();
 	},
@@ -8,7 +8,7 @@ export const Subscribable = node => ({
 	
 	// state: {},
 	// nodes: {},
-	events: [
+	triggers: [
 		"receive",
 		"subscribe",
 		"unsubscribe",
@@ -25,10 +25,10 @@ export const Subscribable = node => ({
 			let newSubscribers = [];
 			for(let subscriber of subscribers) {
 				if(subscriber instanceof Node || typeof subscriber === "function") {
-					node.subscriptions.add(subscriber);
+					target.subscriptions.add(subscriber);
 
 					if(twoWay && subscriber instanceof Node) {
-						subscriber.subscriptions.add(node);
+						subscriber.subscriptions.add(target);
 					}
 
 					newSubscribers.push(subscriber);
@@ -36,10 +36,10 @@ export const Subscribable = node => ({
 			}
 			
 			if(newSubscribers.length) {
-				node.actions.invoke("subscribe", newSubscribers);
+				target.actions.invoke("subscribe", newSubscribers);
 			}
 
-			return node;
+			return target;
 		},
 		removeSubscriber(subscribers = [], twoWay = false) {
 			if(!Array.isArray(subscribers)) {
@@ -48,10 +48,10 @@ export const Subscribable = node => ({
 			
 			let unsubscribers = [];
 			for(let subscriber of subscribers) {
-				let result = node.subscriptions.delete(subscriber);
+				let result = target.subscriptions.delete(subscriber);
 
 				if(twoWay && subscriber instanceof Node) {
-					subscriber.subscriptions.delete(node);
+					subscriber.subscriptions.delete(target);
 				}
 
 				if(result) {
@@ -62,26 +62,26 @@ export const Subscribable = node => ({
 			}
 
 			if(unsubscribers.length) {
-				node.actions.invoke("unsubscribe", unsubscribers);
+				target.actions.invoke("unsubscribe", unsubscribers);
 			}
 
-			return node;
+			return target;
 		},
 		receive(emitter, ...args) {
-			node.actions.invoke("receive", emitter, ...args);
+			target.actions.invoke("receive", emitter, ...args);
 
-			return node;
+			return target;
 		},
 		broadcast(...args) {
-			for(let subscriber of node.subscriptions) {
+			for(let subscriber of target.subscriptions) {
 				if(subscriber instanceof Node) {
-					subscriber.actions.receive(node, ...args);
+					subscriber.actions.receive(target, ...args);
 				} else if(typeof subscriber === "function") {
-					subscriber(node, ...args);
+					subscriber(target, ...args);
 				}
 			}
 
-			return node;
+			return target;
 		},
 	},
 });
