@@ -2,14 +2,13 @@ import Console from "../util/Console";
 import Dice from "../util/Dice";
 
 import Node from "../node/Node";
-import OverlayTag, { factory as NodeTagFactory } from "../overlays/Tag";
+import OverlayTag from "../overlays/Tag";
 
 import Tags from "./../tag/package";
 
 Console.NewContext();
 
-// const [ node, node2 ] = Node.Factory(2, [ OverlayTag ]);
-const node = NodeTagFactory();
+const [ node ] = Node.Factory(1, [ OverlayTag ]);
 
 Console.section("Initial State");
 console.log(node.state);
