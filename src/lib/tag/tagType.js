@@ -20,14 +20,16 @@ export const types = [
 
 	"char",
 	"string",
+	"enum",
+	"uuid",
+
 	"date",
 	"time",
 	"datetime",
-	"uuid",
 	
 	"array",
-	"compound",
-	
+	"compound",	
+
 	"ref",
 	"function",
 
