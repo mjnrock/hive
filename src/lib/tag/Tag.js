@@ -77,6 +77,37 @@ export class Tag {
 		}
 	}
 
+	$(...args) {
+		if(Array.isArray(args)) {
+			if(Array.isArray(args[ 0 ])) {
+				if(args[ 0 ].length === 0) {
+					return this;
+				}
+
+				args = args[ 0 ].join(".");
+			} else {
+				return this;
+			}
+			
+			if(this.data instanceof Tag) {
+				return this.data;				
+			} else if(Array.isArray(this.data)) {
+				let nextTag = this;
+				let [ nextAlias, ...nextArgs ] = args.split(".");
+
+				for(let entry of this.data) {
+					if(entry instanceof Tag) {
+						if(nextAlias === entry.alias) {
+							nextTag = entry.$(nextArgs);
+						}
+					}
+				}
+
+				return nextTag;
+			}
+		}
+	}
+
 	toObject() {
 		const obj = {
 			type: this._type,
