@@ -19,19 +19,17 @@ Console.NewContext();
 // node.actions.invoke("ADD_TAG", Tags.Types.Uint8, "cats", Dice.random(0, 255));
 // console.log(node.state);
 
-const tagStr2 = new Tags.String("str2", `cats2`);
-const tagComp2 = new Tags.Compound("comp2", [
-	tagStr2,
-]);
-const tagStr = new Tags.String("str", `cats`);
-const tagComp = new Tags.Compound("comp", [
-	tagStr,
-	tagComp2,
+const tagComp = Tags.Create(Tags.Types.Compound, "comp", [
+	[ Tags.Types.String, "str", `cat` ],
+	[ Tags.Types.Compound, "comp2", [
+		[ Tags.Types.String, "str2", `cats` ],
+	]],
 ]);
 
-// let $ = tagComp.$.bind(tagComp);
-// // console.log($());
-// console.log($`str`.data);
+const { $ } = tagComp;
+console.log($());
+console.log($`str`.data);
+
 
 // console.log(tagComp.$());
 // console.log(tagComp.$`str`.meta);

@@ -77,7 +77,10 @@ export class Tag {
 		}
 	}
 
-	$(...args) {
+	get $() {
+		return this._$.bind(this);
+	}
+	_$(...args) {
 		if(Array.isArray(args)) {
 			if(Array.isArray(args[ 0 ])) {
 				if(args[ 0 ].length === 0) {

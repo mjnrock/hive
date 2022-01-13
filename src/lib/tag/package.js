@@ -37,8 +37,26 @@ obj.getClass = type => {
 	}
 
 	return Tag;
-}
+};
+obj.Create = (type, alias, data, ...args) => {
+	const clazz = obj.getClass(type);
+
+	if(Array.isArray(data) && (type === Tag.Types.Compound || type === Tag.Types.Array)) {
+		for(let i = 0; i < data.length; i++) {
+			let entry = data[ i ];
+
+			if(Array.isArray(entry)) {
+				entry = obj.Create(...entry);
+			}
+
+			data[ i ] = entry;
+		}
+	}
+
+	return new clazz(alias, data, ...args)
+};
 
 export const getClass = obj.getClass;
+export const Create = obj.Create;
 
 export default obj;

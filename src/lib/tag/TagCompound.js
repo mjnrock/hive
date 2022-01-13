@@ -2,6 +2,8 @@
 import { validate } from "uuid";
 import Tag from "./Tag";
 
+import { Create as CreateTag } from "./package";
+
 export class TagCompound extends Tag {
 
 	static Type = Tag.Types.Compound;
@@ -47,8 +49,14 @@ export class TagCompound extends Tag {
 		}
 	}
 
-	addTag(tag) {
-		this._data.push(tag);
+	addTag(tag, ...rest) {
+		if(tag instanceof Tag) {
+			this._data.push(tag);
+		} else {
+			let newTag = CreateTag(tag, ...rest);
+
+			this._data.push(newTag);
+		}
 
 		return this;
 	}
