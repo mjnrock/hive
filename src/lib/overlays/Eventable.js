@@ -17,7 +17,8 @@ export const Eventable = target => ({
 		"*",		// Pre-trigger hook -- all handlers will execute before trigger handlers
 		"**",		// Post-trigger hook -- all handlers will execute after trigger handlers
 		"@",		// Filter hook -- Any return value *except* TRUE will immediately return (i.e. qty > 1 --> conjunctive)
-		"update",	// Invoke state change -- Add reducers here to sequentially update state if setup as reducer (config.isReducer)
+		"update",	// Invoke state change -- Add reducers here to sequentially update state if setup as reducer (config.isReducer must be true)
+		"merge",	// Invoke state change -- Add reducers here to sequentially update state if setup as merge reducer (config.isReducer must be true)
 		"state",	// Informed of state change -- Add handlers to perform work *after* state has updated -- invoking an "update" trigger will also invoke a "state" trigger, afterward
 	],
 	// subscriptions: [],
@@ -55,15 +56,29 @@ export const Eventable = target => ({
 				handler(target, "*")(...args);
 			}
 			
-			if(trigger === "update" && target.meta.config.isReducer) {
+			if(target.meta.config.isReducer) {
 				let state;
 				for(let handler of target.triggers.get(trigger)) {
 					state = handler(target, trigger)(...args);
 				}
 				
 				const oldState = target.state;
-				target.state = state;
-				
+				if(trigger === "update") {
+					target.state = state;
+				} else if(trigger === "merge") {
+					if(Array.isArray(target.state)) {
+						target.state = [
+							...oldState,
+							...state,
+						];
+					} else {
+						target.state = {
+							...oldState,
+							...state,
+						};
+					}
+				}
+					
 				target.actions.invoke("state", state, oldState);
 			} else {
 				for(let handler of target.triggers.get(trigger)) {
