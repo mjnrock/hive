@@ -95,15 +95,20 @@ export class Tag {
 			if(this.data instanceof Tag) {
 				return this.data;				
 			} else if(Array.isArray(this.data)) {
-				let nextTag = this;
+				let nextTag;
 				let [ nextAlias, ...nextArgs ] = args.split(".");
 
+				let index = 0;
 				for(let entry of this.data) {
-					if(entry instanceof Tag) {
-						if(nextAlias === entry.alias) {
+					if(entry instanceof Tag) {						
+						if(nextAlias.match(/[0-9]+/) && +nextAlias === index) {
+							nextTag = entry.$(nextArgs);
+						} else if(nextAlias === entry.alias) {
 							nextTag = entry.$(nextArgs);
 						}
 					}
+
+					++index;
 				}
 
 				return nextTag;

@@ -18,6 +18,16 @@ export class TagCompound extends Tag {
 
 	constructor(alias, data, opts = {}) {
 		super(alias, TagCompound.Type, data, opts);
+
+		return new Proxy(this, {
+			get(target, prop) {
+				if(prop.match(/[0-9]+/)) {
+					return target.data[ prop ];
+				}
+
+				return Reflect.get(target, prop);
+			},
+		});
 	}
 
 	get data() {
