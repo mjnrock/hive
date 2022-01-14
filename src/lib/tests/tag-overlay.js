@@ -27,12 +27,17 @@ const tagComp = Tags.Create(Tags.Types.Compound, "comp", [
 ]);
 
 const { $ } = tagComp;
-console.log($().alias);
-console.log($`str`.alias);
-console.log($`0`.alias);
-console.log($`1`.alias);
-console.log($`2`);
-console.log(tagComp[ 0 ].alias);
+let id = $`comp2`.id;
+let id2 = $`comp2.str2`.id;
+console.log(id, `${ id }`);
+console.log(id2, `${ id2 }`);
+// console.log($().alias);
+console.log($`comp2.str2`.alias);
+console.log($`${ id }.${ id2 }`.alias);
+// console.log($`0`.alias);
+// console.log($`1`.alias);
+// console.log($`2`);
+// console.log(tagComp[ 0 ].alias);
 
 
 // console.log(tagComp.$());

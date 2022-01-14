@@ -82,14 +82,19 @@ export class Tag {
 	}
 	_$(...args) {
 		if(Array.isArray(args)) {
-			if(Array.isArray(args[ 0 ])) {
-				if(args[ 0 ].length === 0) {
+			let [ arg, ...inputs ] = args;
+
+			if(Array.isArray(arg)) {
+				if(arg.length === 0) {
 					return this;
 				}
 
-				args = args[ 0 ].join(".");
-			} else {
-				return this;
+				if(validate(inputs[ 0 ])) {
+					args = inputs.join(".");
+				} else {
+					args = args.join(".");
+				}
+				console.log(29348, args)
 			}
 			
 			if(this.data instanceof Tag) {
@@ -100,8 +105,10 @@ export class Tag {
 
 				let index = 0;
 				for(let entry of this.data) {
-					if(entry instanceof Tag) {						
-						if(nextAlias.match(/[0-9]+/) && +nextAlias === index) {
+					if(entry instanceof Tag) {
+						if(validate(nextAlias) && entry.id === nextAlias) {
+							nextTag = entry.$(nextArgs);
+						} else if(nextAlias.match(/[0-9]+/) && +nextAlias === index) {
 							nextTag = entry.$(nextArgs);
 						} else if(nextAlias === entry.alias) {
 							nextTag = entry.$(nextArgs);
