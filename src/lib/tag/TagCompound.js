@@ -130,8 +130,8 @@ export class TagCompound extends Tag {
 		return false;
 	}
 	mergeTagDataById(id, data, isArray = false) {
-		if(typeof tag.data === "object") {
-			for(let tag of this.data) {
+		if(typeof this.data === "object") {
+			for(let tag of Object.values(this.data)) {
 				if(tag.id === id) {
 					if(isArray === true) {
 						tag.data = [
