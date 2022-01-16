@@ -1,6 +1,6 @@
-import Node from "./../node/Node";
+import Node from "../../node/Node";
 
-import Tags from "../tag/package";
+import Tags from "../../tag/package";
 
 export const Tag = target => ({
 	state: () => new Tags.Compound(),
@@ -23,8 +23,10 @@ export const Tag = target => ({
 		},
 		REMOVE_TAG: () => (tag) => {
 			if(tag instanceof Tags.Tag) {
-				target.state.removeTag(tag);
+				return target.state.removeTag(tag);
 			}
+
+			return false;
 		},
 		GET_TAG: () => (id) => {
 			return target.state.getTagById(id);
