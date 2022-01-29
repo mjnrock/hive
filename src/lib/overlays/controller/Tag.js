@@ -2,6 +2,13 @@ import Node from "../../node/Node";
 
 import Tags from "../../tag/package";
 
+/**
+ * As the construction demonstrates, a Controller is a specific
+ * Overlay that functions as an eventable state machine.  Thus,
+ * the seed function for .state below will generate the default
+ * state, while the triggers, when invoked, will act as paradigmatic
+ * Redux reducers
+ */
 export const Tag = target => ({
 	state: () => new Tags.Compound(),
 	triggers: {

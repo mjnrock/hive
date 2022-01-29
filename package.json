@@ -37,7 +37,8 @@
 			"no-loop-func": "off",
 			"jsx-a11y/anchor-is-valid": "off",
 			"no-extend-native": "off",
-			"no-lone-blocks": "off"
+			"no-lone-blocks": "off",
+			"react-hooks/exhaustive-deps": "off"
 		}
 	},
 	"browserslist": {

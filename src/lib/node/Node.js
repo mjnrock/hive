@@ -85,9 +85,9 @@ export class Node {
 					this.meta.overlays.add(overlay);
 				}
 			} else if(Array.isArray(overlay)) {
-				if(!this.meta.overlays.has(ol)) {
-					let [ ol, fns ] = overlay;
+				let [ ol, fns ] = overlay;
 
+				if(!this.meta.overlays.has(ol)) {
 					Overlay(this, ol);
 					this.meta.overlays.add(ol);
 
@@ -102,6 +102,7 @@ export class Node {
 			}
 		}
 	}
+
 
 	get state() {
 		return this._state;
@@ -234,7 +235,7 @@ export class Node {
 	static Create(opts = {}) {
 		return new Node(opts);
 	}
-	static Factory(qty, opts = {}) {
+	static Factory(qty = 1, opts = {}) {
 		let nodes = [];
 
 		if(Array.isArray(opts)) {

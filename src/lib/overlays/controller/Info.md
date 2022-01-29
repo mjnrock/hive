@@ -1,5 +1,5 @@
 # `Controller`
-A `Controller` is a type of `Overlay` that adds **Redux**-like functionality to a `Node`.  As such, the `.state` entry expects to be a `function` that will return a default `state`, while the pre-assigned `triggers` are intended to allow for invocations via event-messaging handlers.
+A `Controller` is a type of `Overlay` that adds **Redux**-like functionality to a `Node`.  As such, the Overlay seed's `.state` entry is expected to be a `function` that will return a default `state`, while the pre-assigned `triggers` are intended to allow for invocations via event-messaging handlers.
 
 The major reason for using a `Controller` is that their primary implementation purpose is to act as a stateful context with a application.  For example, in *React-Redux* analogy, a `Controller` would hold the `state`, the `dispatcher`, and the `reducers`.  This could then be coupled with a `React.Context` for application-wide use.
 

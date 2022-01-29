@@ -56,8 +56,8 @@ export const Eventable = target => ({
 				handler(target, "*")(...args);
 			}
 			
-			if(target.meta.config.isReducer) {
-				let state;
+			if(target.meta.config.isReducer && (trigger === "update" || trigger === "merge")) {
+				let [ state ] = args;
 				for(let handler of target.triggers.get(trigger)) {
 					state = handler(target, trigger)(...args);
 				}

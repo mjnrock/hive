@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import Routes from "./routes/package";
 
+import Node from "./lib/node/Node";
+
 //! NOTE: The Tailwind final css file doesn't add entries unless it *explicitly* evaluates that option -- Tag coloring appears broken sometimes as a result of this
 /**
  * A present workaround is to explicitly load each color that might be used, so that the entries are put into the final css file.
@@ -18,10 +20,15 @@ import "./css/tailwind.css";
 import "./css/main.css";
 
 export const Context = React.createContext();
+export const ctxNode = Node.Create({
+	state: {
+		cats: 999,
+	}
+});
 
 function App() {
 	return (
-        <Context.Provider value={{ state: true }}>
+        <Context.Provider value={{ node: ctxNode }}>
             <Router>
                 <Switch>
                     <Route path={ `/` }>

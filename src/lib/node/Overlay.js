@@ -112,6 +112,9 @@ export function Overlay(node, overlay, customMerger = false) {
 
 	hook("iterator", node, layer);
 	hook("post", node, layer);
+
+	//? This requires refactoring Node a bit to save and use the result of the proxy hook as the Node constructor's return @this
+	hook("proxy", node, layer);
 };
 
 export default Overlay;
