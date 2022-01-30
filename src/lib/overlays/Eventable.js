@@ -79,10 +79,12 @@ export const Eventable = target => ({
 					}
 				}
 					
-				target.actions.invoke("state", state, oldState);
+				if(state !== oldState) {
+					target.actions.invoke("state", state, oldState);
+				}
 			} else {
 				for(let handler of target.triggers.get(trigger)) {
-					handler({ target, trigger, update: (...args) => target.actions.invoke("update", ...args) })(...args);
+					handler({ target, trigger, update: (...args) => target.actions.invoke("update", ...args), asyncUpdate: (...args) => target.actions.asyncInvoke("update", ...args) })(...args);
 				}
 			}
 

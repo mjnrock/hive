@@ -45,3 +45,8 @@ export function useContextNode(context, prop = "node") {
 
 	return useNode(node);
 };
+
+export default {
+	useNode,
+	useContextNode,
+};

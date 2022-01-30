@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { seedArray } from "../lib/util/helper";
 import { useContextNode } from "../lib/react/package";
 
 import { Context } from "../App";
@@ -7,20 +6,7 @@ import { Context } from "../App";
 export function TestComponent() {
 	// const { node } = useContext(Context);
 	// const { state, update } = useNode(node);
-	const { state, update } = useContextNode(Context, "root.node");
-	
-	useEffect(() => {
-		const int = setInterval(() => {
-			update({
-				cats: Math.random(),
-			});
-		}, 1000);
-
-		return () => {
-			console.log(int)
-			clearInterval(int);
-		}
-	}, []);
+	const { state, update } = useContextNode(Context, "node");
 
 	return (
 		<>
@@ -35,34 +21,55 @@ export function TestComponent() {
 export function TestComponent2() {
 	// const { node } = useContext(Context);
 	// const { state, update } = useNode(node);
-	const { update } = useContextNode(Context, "root.node");
+	const { dispatch } = useContextNode(Context, "node");
 
 	return (
 		<>
+			<button className="p-4 m-2 border" onClick={ e => dispatch("test", 12345) }>Do stuff</button>
 			<div>
 				{
-					Date.now().toString()
+					22
 				}
 			</div>
 		</>
 	);
 }
 
-export function Default() {
-	const [ comps, setComps ] = useState(1);
+export function TestDefault() {
+	const [ size, setSize ] = useState(1);
+	const [ comps, setComps ] = useState([]);
+
+	useEffect(() => {
+		if(size < comps.length) {
+			setComps(comps.slice(0, size));
+		} else {
+			setComps([
+				...comps,
+				[
+					<TestComponent />,
+					<TestComponent2 />,
+				]
+			]);
+		}
+	}, [ size ]);
 	
 	return (
 		<>
-			<button className="p-4 m-2 border" onClick={ e => setComps(comps + 1)}>Inc</button>
-			<button className="p-4 m-2 border" onClick={ e => setComps(comps - 1)}>Dec</button>
+			<button className="p-4 m-2 border" onClick={ e => setSize(size + 1)}>Inc</button>
+			<button className="p-4 m-2 border" onClick={ e => setSize(size - 1)}>Dec</button>
 			{
-				seedArray(comps, (i) => <TestComponent key={ i } />)
-			}
-			{
-				seedArray(comps, (i) => <TestComponent2 key={ i } />)
+				comps
 			}
 		</>
 	);
 }
+export function Default() {	
+	return (
+		<>
+			Default Routing Page
+		</>
+	);
+}
 
-export default Default;
+//FIXME export default Default;
+export default TestDefault;

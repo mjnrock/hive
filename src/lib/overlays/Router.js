@@ -6,6 +6,9 @@ import Node from "../node/Node";
  * 	is called.  As such, the handler-Node should have a
  * 	"route" handler within its event base.
  */
+
+export const fnDefaultRoute = () => true;
+
 export const Router = target => ({
 	// state: {
 	// 	routes: [],
@@ -58,6 +61,16 @@ export const Router = target => ({
 			return target;
 		},
 
+		/**
+		 * This will create a defaulting routing to the @node
+		 */
+		addReceiver(node) {
+			return target.actions.addRoute(fnDefaultRoute, node);
+		},
+		removeReceiver(node) {
+			return target.actions.removeRoute(fnDefaultRoute, node);
+		},
+
 		route(...args) {
 			for(let [ filter, handler ] of target.meta.config.routes) {
 				let hasResult = false;
@@ -66,7 +79,7 @@ export const Router = target => ({
 				if(typeof filter === "function") {
 					let result = filter(...args);
 
-					if(result === true) {						
+					if(result === true) {
 						if(handler instanceof Node) {
 							handler.actions.invoke("route", target, ...args);
 						} else {
@@ -75,7 +88,7 @@ export const Router = target => ({
 
 						hasResult = true;
 					}
-				}				
+				}
 				
 				//TODO Introduce @type/.type specificity for regexp/string matching
 				/*if(typeof filter === "string") {
