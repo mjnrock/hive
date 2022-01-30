@@ -28,7 +28,7 @@ export const ctxNode = Node.Create({
 
 function App() {
 	return (
-        <Context.Provider value={{ node: ctxNode }}>
+        <Context.Provider value={{ root: { node: ctxNode } }}>
             <Router>
                 <Switch>
                     <Route path={ `/` }>

@@ -45,7 +45,7 @@ export const Eventable = target => ({
 			}
 			
 			for(let filter of target.triggers.get("@")) {
-				const result = filter(target, "@")(...args);
+				const result = filter({ target, trigger: "@" })(...args);
 
 				if(result !== true) {
 					return target;
@@ -53,13 +53,13 @@ export const Eventable = target => ({
 			}
 
 			for(let handler of target.triggers.get("*")) {
-				handler(target, "*")(...args);
+				handler({ target, trigger: "*" })(...args);
 			}
 			
 			if(target.meta.config.isReducer && (trigger === "update" || trigger === "merge")) {
 				let [ state ] = args;
 				for(let handler of target.triggers.get(trigger)) {
-					state = handler(target, trigger)(...args);
+					state = handler({ target, trigger })(...args);
 				}
 				
 				const oldState = target.state;
@@ -82,12 +82,12 @@ export const Eventable = target => ({
 				target.actions.invoke("state", state, oldState);
 			} else {
 				for(let handler of target.triggers.get(trigger)) {
-					handler(target, trigger)(...args);
+					handler({ target, trigger, update: (...args) => target.actions.invoke("update", ...args) })(...args);
 				}
 			}
 
 			for(let handler of target.triggers.get("**")) {
-				handler(target, "**")(...args);
+				handler({ target, trigger: "**" })(...args);
 			}
 
 			return target;

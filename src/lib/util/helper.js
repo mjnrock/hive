@@ -144,6 +144,15 @@ export function seedObject(keys = [], fn = () => null) {
 
     return obj;
 };
+
+export function seedArray(size, fn = () => null) {
+	const arr = [];
+	for(let i = 0; i < size; i++) {
+		arr.push(fn(i, [ size, fn ]));
+	}
+
+	return arr;
+}
 // console.log(seedObject([ "world", "x", "y", "cat.dog", "cat.fish", "cat.fish.a" ], (key) => {
 //     if(key === "world") {
 //         return 14;
@@ -280,6 +289,7 @@ export default {
     unflatten,
     recurse,
     seedObject,
+    seedArray,
 	capitalizeFirstLetter,
     round,
     floor,
