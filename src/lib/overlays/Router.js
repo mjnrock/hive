@@ -10,13 +10,14 @@ import Node from "../node/Node";
 export const fnDefaultRoute = () => true;
 
 export const Router = target => ({
-	// state: {
-	// 	routes: [],
-	// },
+	state: {
+		//TODO Only the variables exist, not the functionality to utilize a queue
+		queue: new Set(),
+	},
 	// nodes: {},
 	triggers: {
 		receive: [
-			(node, trigger) => (emitter, ...args) => node.actions.route(...args),
+			({ target: node, trigger }) => (emitter, ...args) => node.actions.route(...args),
 		],
 	},
 	// subscriptions: [],
@@ -24,6 +25,8 @@ export const Router = target => ({
 	config: {
 		routes: [],
 		isMultiMatch: false,
+		isBatchProcessing: false,
+		maxQueueSize: Infinity,
 	},
 	actions: {
 		toggleMultiMatch(bool) {

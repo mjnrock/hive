@@ -31,7 +31,20 @@ export class Node {
 		this.triggers = triggers;
 		this.subscriptions = subscribers;
 		
-		Node.Registry.set(this.id, this);
+		//TODO	Do this, but find a very lazy way to perform cleanup, because it's useful but adds garbage collection annoyance in practice
+		// Perhaps there could be different gc strategies?  MANUAL (EVERY Node must be dealt with), KEEP_ALIVE (Add Proxy trap to keep a timestamp of last get access with periodic polling and resulting deletion if meets timeout threshold)
+		// Node.Registry.set(this.id, this);
+
+		//TODO	Allow proxy or proxy-like traps/hooks for a node via a $proxy/trap/hook parameter
+		// return new Proxy(this, {
+		// 	get(target, prop) {
+		// 		for(let hook of target.hooks) {
+		// 			hook(target, "GET", prop);
+		// 		}
+
+		// 		return Reflect.get(target, prop);
+		// 	},
+		// });
 	}
 
 	/**
@@ -163,21 +176,17 @@ export class Node {
 		} else if(typeof newTriggers === "object") {
 			for(let [ event, handlers ] of Object.entries(newTriggers)) {
 				if(!(this._triggers.get(event) instanceof Set)) {
-					if(Array.isArray(handlers)) {
-						this._triggers.set(event, new Set([ ...handlers ]));
-					} else if(typeof handlers === "function") {
-						this._triggers.set(event, new Set([ handlers ]));
-					}
-				} else {
-					if(Array.isArray(handlers)) {
-						for(let handler of handlers) {
-							if(typeof handler === "function") {
-								this.triggers.get(event).add(handler);
-							}
+					this._triggers.set(event, new Set());
+				}
+				
+				if(Array.isArray(handlers)) {
+					for(let handler of handlers) {
+						if(typeof handler === "function") {
+							this.triggers.get(event).add(handler);
 						}
-					} else if(typeof handlers === "function") {
-						this.triggers.get(event).add(handlers);
 					}
+				} else if(typeof handlers === "function") {
+					this.triggers.get(event).add(handlers);
 				}
 			}
 		}
@@ -233,7 +242,11 @@ export class Node {
 	}
 
 	static Create(opts = {}) {
-		return new Node(opts);
+		if(Array.isArray(opts)) {
+			return new Node({ overlays: opts });
+		} else {
+			return new Node(opts);
+		}
 	}
 	static Factory(qty = 1, opts = {}) {
 		let nodes = [];

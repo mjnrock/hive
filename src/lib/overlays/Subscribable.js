@@ -24,7 +24,7 @@ export const Subscribable = target => ({
 			
 			let newSubscribers = [];
 			for(let subscriber of subscribers) {
-				if(subscriber instanceof Node || typeof subscriber === "function") {
+				if(subscriber !== target && (subscriber instanceof Node || typeof subscriber === "function")) {
 					target.subscriptions.add(subscriber);
 
 					if(twoWay && subscriber instanceof Node) {
@@ -67,8 +67,26 @@ export const Subscribable = target => ({
 
 			return target;
 		},
+
+		subscribeTo(node) {
+			if(node instanceof Node) {
+				node.actions.addSubscriber(target);
+			}
+
+			return target;
+		},
+		unsubscribeFrom(node) {
+			if(node instanceof Node) {
+				node.actions.addSubscriber(target);
+			}
+
+			return target;
+		},
+
 		receive(emitter, ...args) {
-			target.actions.invoke("receive", emitter, ...args);
+			if(target !== emitter) {
+				target.actions.invoke("receive", emitter, ...args);
+			}
 
 			return target;
 		},
