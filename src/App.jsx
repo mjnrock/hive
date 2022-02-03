@@ -3,9 +3,6 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import Routes from "./routes/package";
 
-import Node from "./lib/node/Node";
-import Dice from "./lib/util/Dice";
-
 //! NOTE: The Tailwind final css file doesn't add entries unless it *explicitly* evaluates that option -- Tag coloring appears broken sometimes as a result of this
 /**
  * A present workaround is to explicitly load each color that might be used, so that the entries are put into the final css file.
@@ -21,55 +18,17 @@ import "./css/tailwind.css";
 import "./css/main.css";
 
 export const Context = React.createContext();
-export const routerNode = Node.Create({
-	state: {},
-	triggers: {
-		//TODO
-	},
-});
-export const ctxNode = Node.Create({
-	state: {
-		cats: 999,
-	},
-	triggers: {
-		route: [
-			({ target }) => (...args) => {
-				//TODO Something from a route
-			},
-		],
-		test: [
-			({ target, update }) => () => {
-				console.log("YHES");
-
-				// Perform some operations, perhaps an AJAX something
-				
-				update({
-					...target.state,
-					dogs: target.state.dogs ? target.state.dogs + 1 : 1,
-				});
-			},
-		],
-	},
-});
-
-//!	Test to update the state
-setInterval(() => {
-	ctxNode.actions.invoke("update", {
-		...ctxNode.state,
-		cats: ctxNode.state.cats ? ctxNode.state.cats + Dice.random(1, 3) : 2,
-	});
-}, 1000)
+const state = {
+	cats: 2,
+};
 
 function App() {
 	return (
-        <Context.Provider value={{ node: ctxNode, router: routerNode }}>
+        <Context.Provider value={{ state }}>
             <Router>
                 <Switch>
                     <Route path={ `/` }>
-						<>
-                        	<Routes.Default />
-                        	<Routes.Default />
-						</>
+						<Routes.Default />
                     </Route>
                 </Switch>
             </Router>
