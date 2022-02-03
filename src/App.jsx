@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { useFlux } from "./lib/react/package";
 
 import Routes from "./routes/package";
 
@@ -17,14 +18,38 @@ import Routes from "./routes/package";
 import "./css/tailwind.css";
 import "./css/main.css";
 
-export const Context = React.createContext();
-const state = {
-	cats: 2,
-};
+export const Flux = React.createContext();
+export const FluxConfig = {
+	state: {
+		cats: 2,
+	},
+	reducers: {
+		test: ([ ...args ]) => {
+			console.log(args);
+	
+			return {
+				type: "test",
+				now: Date.now(),
+				args,
+			};
+		},
+		cat: ([ ...args ]) => {
+			console.log(args);
+	
+			return {
+				type: "cat",
+				now: Date.now(),
+				args,
+			};
+		},
+	},
+}
 
 function App() {
+	const { state, dispatch } = useFlux(FluxConfig);
+
 	return (
-        <Context.Provider value={{ state }}>
+        <Flux.Provider value={{ state, dispatch }}>
             <Router>
                 <Switch>
                     <Route path={ `/` }>
@@ -32,7 +57,7 @@ function App() {
                     </Route>
                 </Switch>
             </Router>
-        </Context.Provider>
+        </Flux.Provider>
 	);
 }
 
