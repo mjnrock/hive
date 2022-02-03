@@ -1,52 +1,45 @@
-import { useContext, useEffect, useState } from "react";
+// import { useContext, useState } from "react";
+import { useEffect, useState } from "react";
 
-export function useNode(node) {
-	const [ state, setState ] = useState(node.state);
+export function useReducer({ state: i_state, reducers: i_reducers } = {}) {
+	const [ state, setState ] = useState(i_state || {});
+	const [ reducers, setReducers ] = useState(i_reducers || []);
+	const dispatch = (type, ...args) => {
+		let next;
+		for(let reducer of reducers) {
+			next = reducer(type, ...args);
+		}
+
+		if(next !== void 0) {
+			setState(next);
+		}
+	};
 
 	useEffect(() => {
-		const handler = () => (newState, oldState) => {
-			setState(newState);		// Trigger the React update
-		};
-
-		if(!node.meta.config.isReducer) {
-			node.meta.config.isReducer = true;
-		}
-		
-		/**
-		 * Listening to "state" ensures that all reducers have
-		 * been executed before it triggers the React rerender
-		 */
-		node.actions.addHandler("state", handler);
-
-		return () => {
-			// Clean up the @handler from @node
-			node.actions.removeHandler("state", handler);
-		};
-	}, [ node ]);
+		setReducers(i_reducers);
+	}, [ i_reducers ]);
 
 	return {
 		state,
-		update: (...args) => node.actions.invoke("update", ...args),	// Convenience dispatching function for "update" specifically
-		dispatch: node.actions.invoke.bind(node),
-		
-		node,
+		dispatch,
 	};
 };
 
-export function useContextNode(context, prop = "node") {
-	const ctx = useContext(context);
+//TODO Verify that this actuall updates the Context
+// export function useContextReducer(context, { prop = "", reducers = [] } = {}) {
+// 	const ctx = useContext(context);
 
-	let nested = prop.split("."),
-		node = ctx;
+// 	let nested = prop.split("."),
+// 		tier = ctx;
 
-	for (let p of nested) {
-		node = node[ p ];
-	}
+// 	for (let p of nested) {
+// 		tier = tier[ p ];
+// 	}
 
-	return useNode(node);
-};
+// 	return useReducer({ state: tier, reducers });
+// };
 
 export default {
-	useNode,
-	useContextNode,
+	useReducer,
+	// useContextReducer,
 };
