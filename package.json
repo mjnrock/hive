@@ -22,7 +22,7 @@
 	"scripts": {
 		"start": "react-scripts start",
 		"build": "react-scripts build",
-		"test": "node ./src/lib/test.js",
+		"test": "node ./src/lib/tests/test.js",
 		"eject": "react-scripts eject"
 	},
 	"eslintConfig": {
