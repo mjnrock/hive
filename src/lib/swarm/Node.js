@@ -8,6 +8,8 @@ export class Node {
 		this._mesh = new Set(...mesh);
 		this._config = {
 			isReducer: true,
+			allowRPC: true,
+
 			queue: new Set(),
 			isBatchProcessing: false,
 			maxBatchSize: 1000,
@@ -150,8 +152,9 @@ export class Node {
 
 		for(let i = 0; i < runSize; i++) {
 			const [ trigger, args ] = queue[ i ];
+			const result = this.run(trigger, ...args);
 
-			results.push(this.run(trigger, ...args));
+			results.push(result);
 		}
 
 		this._config.queue = new Set(queue.slice(runSize));
@@ -159,6 +162,13 @@ export class Node {
 		return results;
 	}
 	run(trigger, ...args) {
+		/**
+		 * Pre hooks
+		 */
+		for(let fn of this._triggers.get("*")) {
+			fn(args, { trigger, node: this });
+		}
+
 		let hadMatch = false;
 		for(let [ trig, fns ] of this._triggers) {
 			if(trigger === trig) {
@@ -185,12 +195,19 @@ export class Node {
 			}
 		}
 
-		if(hadMatch === false) {
-			if(typeof this[ trigger ] === "function") {
+		if(hadMatch === false && this._config.allowRPC === true) {
+			if(typeof trigger === "string" && typeof this[ trigger ] === "function") {
 				this[ trigger ](...args);
 
 				hadMatch = true;
 			}
+		}
+
+		/**
+		 * Effect hooks
+		 */
+		for(let fn of this._triggers.get("**")) {
+			fn(args, { trigger, node: this });
 		}
 
 		return hadMatch;
