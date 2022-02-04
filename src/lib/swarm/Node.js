@@ -1,14 +1,16 @@
-import { v4 as uuid } from "uuid";
+import Brood from "./Brood";
+import Message from "./Message";
 
-export class Node {
+export class Node extends Brood {
 	constructor({ id, state = {}, mesh = [], config = {}, triggers = [], tags = [] } = {}) {
-		this._id = id || uuid();
+		super(id);
+		
 		this._state = state;
 		this._triggers = new Map(...triggers);
 		this._mesh = new Set(...mesh);
 		this._config = {
-			isReducer: true,
-			allowRPC: true,
+			isReducer: true,	// Make ALL triggers return a state -- to exclude a trigger from state, create a * handler that returns true on those triggers
+			allowRPC: true,		// If no trigger handlers exist AND an internal method is named equal to the trigger, pass ...args to that method
 
 			queue: new Set(),
 			isBatchProcessing: false,
@@ -16,12 +18,9 @@ export class Node {
 
 			...config,
 		};
-		this._tags = new Set(...tags);
 	}
 
-	get id() {
-		return this._id;
-	}
+	deconstructor() {}
 
 	get state() {
 		return this._state;
@@ -59,44 +58,47 @@ export class Node {
 		return this;
 	}
 
-	get tags() {
-		return this._tags;
-	}
-	set tags(tags = []) {
-		const [ add, remove ] = tags;
-
-		if(Array.isArray(add)) {
-			for(let a of add) {
-				this._tags.add(a);
-			}
-		}
-		if(Array.isArray(remove)) {
-			for(let r of remove) {
-				this._tags.delete(r);
-			}
-		}
-
-		return this;
-	}
-
-	enmesh(node) {
+	enmesh(node, binary = false) {
 		this._mesh.add(node);
 
+		if(binary) {
+			node._mesh.add(this);
+		}		
+
 		return this;
 	}
-	demesh(node) {
+	demesh(node, binary = false) {
+		if(binary) {
+			node._mesh.delete(this);
+		}
+
 		return this._mesh.delete(node);
 	}
 
+	/**
+	 * A middleware function that routes an
+	 * invocation command via a Mesh request
+	 * by a .broadcast call.  This can be
+	 * reassigned externally to change the
+	 * receiving logic, but attempt to use
+	 * the pre filter (*) handlers or build
+	 * logic into the trigger handlers.
+	 */
 	receive(trigger, ...args) {
-		this.exec(trigger, ...args);
+		this.invoke(trigger, ...args);	// If received from .broadcast, args[ 0 ] will be a Message
 
 		return this;
 	}
+
+	/**
+	 * Send an invocation command to all
+	 * Nodes in the Mesh.
+	 */
 	broadcast(trigger, ...args) {
 		for(let node of this._mesh) {
 			if(node !== this) {
-				node.receive(trigger, ...args);
+				//NOTE:	For now, limit Messages to be from broadcasting only -- if needed elsewhere, then upgrade concept to a Packet/Message paradigm
+				node.receive(trigger, Message.Create({ data: args, emitter: this }));
 			}
 		}
 
@@ -145,28 +147,23 @@ export class Node {
 		return results;
 	}
 
-	process(qty = this._config.maxBatchSize) {
-		const queue = [ ...this._config.queue ];
-		const results = [];
-		const runSize = Math.min(qty, this._config.maxBatchSize);
-
-		for(let i = 0; i < runSize; i++) {
-			const [ trigger, args ] = queue[ i ];
-			const result = this.run(trigger, ...args);
-
-			results.push(result);
-		}
-
-		this._config.queue = new Set(queue.slice(runSize));
-
-		return results;
-	}
-	run(trigger, ...args) {
+	/**
+	 * This should NOT be used externally.
+	 * 
+	 * A handling abstract to more easily deal with
+	 * batching vs immediate invocations
+	 */
+	_handleInvocation(trigger, ...args) {
 		/**
-		 * Pre hooks
+		 * ? Pre hooks
+		 * These act as filters iff one returns << true >>
 		 */
 		for(let fn of this._triggers.get("*")) {
-			fn(args, { trigger, node: this });
+			let result = fn(args, { trigger, node: this });
+
+			if(result === true) {
+				return false;
+			}
 		}
 
 		let hadMatch = false;
@@ -186,7 +183,7 @@ export class Node {
 					const oldState = this._state;
 					this._state = next;
 
-					this.exec("state", { current: this._state, previous: oldState });
+					this.invoke("state", { current: this._state, previous: oldState });
 				} else {
 					for(let fn of fns) {
 						fn(args, { trigger, node: this });
@@ -204,7 +201,8 @@ export class Node {
 		}
 
 		/**
-		 * Effect hooks
+		 * ? Post hooks
+		 * Treat these like Effects
 		 */
 		for(let fn of this._triggers.get("**")) {
 			fn(args, { trigger, node: this });
@@ -212,17 +210,51 @@ export class Node {
 
 		return hadMatch;
 	}
-	exec(trigger, ...args) {
+
+	/**
+	 * If in batch mode, add trigger to queue; else,
+	 * handle the invocation immediately
+	 */
+	invoke(trigger, ...args) {
 		if(this._config.isBatchProcessing === true) {
 			this._config.queue.add([ trigger, args ]);
 
 			return true;
+		} else {
+			return this._handleInvocation(trigger, ...args);
 		}
-
-		return this.run(trigger, ...args);
 	}
 
-	deconstructor() {}
+	/**
+	 * Process @qty amount of queued triggers
+	 */
+	process(qty = this._config.maxBatchSize) {
+		if(this._config.isBatchProcessing !== true) {
+			return [];
+		}
+
+		const queue = [ ...this._config.queue ];
+		const results = [];
+		const runSize = Math.min(qty, this._config.maxBatchSize);
+
+		for(let i = 0; i < runSize; i++) {
+			const [ trigger, args ] = queue[ i ];
+			const result = this._handleInvocation(trigger, ...args);
+
+			results.push(result);
+		}
+
+		this._config.queue = new Set(queue.slice(runSize));
+
+		return results;
+	}
+
+	async asyncInvoke(trigger, ...args) {
+		return await Promise.resolve(this.invoke(trigger, ...args));
+	}
+	async asyncProcess(qty = this._config.maxBatchSize) {
+		return await Promise.resolve(this.process(qty));
+	}
 };
 
 export default Node;
