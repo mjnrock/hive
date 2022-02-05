@@ -1,14 +1,27 @@
 import { v4 as uuid } from "uuid";
 
 export class Message {
-	constructor({ data, emitter, ...meta } = {}) {
+	constructor({ data, emitter, tags = [], meta = {} } = {}) {
 		this.id = uuid();
 		this.data = data;
 		this.emitter = emitter;
 		this.timestamp = Date.now();
-		this.meta = {
-			...meta,
-		};
+
+		this.tags = new Set(tags);
+		this.meta = meta;
+
+		/**
+		 * Freeze the Message without freezing the entries
+		 * ! Currently, doing this will prevent .clone from working
+		 */
+		// return new Proxy(this, {
+		// 	get(target, prop) {
+		// 		return Reflect.get(target, prop);
+		// 	},
+		// 	set(target, prop, value) {
+		// 		return target;
+		// 	},
+		// });
 	}
 
 	/**
@@ -22,6 +35,8 @@ export class Message {
 			this.data = msg.data;
 			this.emitter = msg.emitter;
 			this.timestamp = msg.timestamp;
+			
+			this.tags = msg.tags;
 			this.meta = msg.meta;
 		}
 
@@ -35,8 +50,7 @@ export class Message {
 			return "id" in obj
 				&& "data" in obj
 				&& "emitter" in obj
-				&& "timestamp" in obj
-				&& "meta" in obj;
+				&& "timestamp" in obj;
 		}
 
 		return false;

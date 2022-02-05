@@ -3,7 +3,7 @@ import Message from "./Message";
 
 export class Node extends Brood {
 	constructor({ id, state = {}, mesh = [], config = {}, triggers = [], tags = [] } = {}) {
-		super(id);
+		super(id, tags);
 		
 		this._state = state;
 		this._triggers = new Map(...triggers);
@@ -216,6 +216,13 @@ export class Node extends Brood {
 	 * handle the invocation immediately
 	 */
 	invoke(trigger, ...args) {
+		/**
+		 * Short-circuit the invocation if the trigger has not been loaded
+		 */
+		if(!this._triggers.has(trigger)) {
+			return false;
+		}
+
 		if(this._config.isBatchProcessing === true) {
 			this._config.queue.add([ trigger, args ]);
 
@@ -254,6 +261,24 @@ export class Node extends Brood {
 	}
 	async asyncProcess(qty = this._config.maxBatchSize) {
 		return await Promise.resolve(this.process(qty));
+	}
+
+	static Create(obj = {}) {
+		return new Node(obj);
+	}
+	static Factor(qty = 1, fnOrObj) {
+		let nodes = [];
+		for(let i = 0; i < qty; i++) {
+			let node = Node.Create(typeof fnOrObj === "function" ? fnOrObj(i) : fnOrObj);
+
+			nodes.push(node);
+		}
+
+		if(qty === 1) {
+			return nodes[ 0 ];
+		}
+
+		return nodes;
 	}
 };
 

@@ -65,7 +65,7 @@ export class Pylon extends Brood {
 		if(this.connexions.has(requester)) {
 			for(let member of this.connexions) {
 				if(member !== requester) {
-					member.receive(trigger, Message.Create({ data: args, emitter: requester, pylon: this.id }));
+					member.receive(trigger, Message.Create({ data: args, emitter: requester, meta:{ pylon: this.id } }));
 				}
 			}
 
@@ -76,4 +76,4 @@ export class Pylon extends Brood {
 	}
 };
 
-export default Pylon;
+
