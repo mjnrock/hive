@@ -20,7 +20,7 @@ export class Brood {
 		return this._tags;
 	}
 	set tags(tags = []) {
-		const [ add, remove ] = tags;
+		let [ add, remove ] = tags;
 
 		if(Array.isArray(add)) {
 			for(let a of add) {

@@ -1,12 +1,17 @@
 import Brood from "./Brood";
-import Message from "./Message";
+import Signal from "./Signal";
 import Node from "./Node";
 
+export const frozenKeys = [
+	`id`,
+	`connexions`,
+];
+
 /**
- * Pylons are flyweight relays to which Nodes can .connect
- * in order to .emit to all other connexions on the Pylon
+ * Nexus are flyweight relays to which Nodes can .connect
+ * in order to .emit to all other connexions on the Nexus
  */
-export class Pylon extends Brood {
+export class Nexus extends Brood {
 	constructor(members = []) {
 		super();
 
@@ -19,11 +24,18 @@ export class Pylon extends Brood {
 				return Reflect.get(target, prop);
 			},
 			set(target, prop, value) {
-				if(prop === "id" || prop === "connexions") {
+				if(frozenKeys.includes(prop)) {
 					return target;
 				}
 
 				return Reflect.set(target, prop, value);
+			},
+			deleteProperty(target, prop) {
+				if(frozenKeys.includes(prop)) {
+					return false;
+				}
+
+				return Reflect.deleteProperty(target, prop);
 			},
 		});
 	}
@@ -65,7 +77,7 @@ export class Pylon extends Brood {
 		if(this.connexions.has(requester)) {
 			for(let member of this.connexions) {
 				if(member !== requester) {
-					member.receive(trigger, Message.Create({ data: args, emitter: requester, meta:{ pylon: this.id } }));
+					member.receive(trigger, Signal.Create({ data: args, emitter: requester, meta:{ pylon: this.id } }));
 				}
 			}
 
@@ -76,4 +88,4 @@ export class Pylon extends Brood {
 	}
 };
 
-
+export default Nexus;

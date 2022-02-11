@@ -1,5 +1,5 @@
 import Brood from "./Brood";
-import Message from "./Message";
+import Signal from "./Signal";
 
 export class Node extends Brood {
 	constructor({ id, state = {}, mesh = [], config = {}, triggers = [], tags = [] } = {}) {
@@ -98,7 +98,7 @@ export class Node extends Brood {
 		for(let node of this._mesh) {
 			if(node !== this) {
 				//NOTE:	For now, limit Messages to be from broadcasting only -- if needed elsewhere, then upgrade concept to a Packet/Message paradigm
-				node.receive(trigger, Message.Create({ data: args, emitter: this }));
+				node.receive(trigger, Signal.Create({ data: args, emitter: this }));
 			}
 		}
 
