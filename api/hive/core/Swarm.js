@@ -7,11 +7,7 @@ export const frozenKeys = [
 	`connexions`,
 ];
 
-/**
- * Nexus are flyweight relays to which Nodes can .connect
- * in order to .emit to all other connexions on the Nexus
- */
-export class Nexus extends Brood {
+export class Swarm extends Brood {
 	constructor(members = []) {
 		super();
 
@@ -88,4 +84,4 @@ export class Nexus extends Brood {
 	}
 };
 
-export default Nexus;
+export default Swarm;
