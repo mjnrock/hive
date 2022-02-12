@@ -2,7 +2,7 @@ import Brood from "./Brood";
 import Signal from "./Signal";
 
 export class Node extends Brood {
-	constructor({ id, state = {}, mesh = [], config = {}, triggers = [], tags = [] } = {}) {
+	constructor({ id, state = {}, mesh = [], config = {}, triggers = [], tags = [], namespace } = {}) {
 		super(id, tags);
 		
 		this._state = state;
@@ -16,8 +16,21 @@ export class Node extends Brood {
 			isBatchProcessing: false,
 			maxBatchSize: 1000,
 
+			namespace: typeof namespace === "function" ? namespace : trigger => trigger,
+
 			...config,
 		};
+
+		//? Default reducer that is only added if at least one (1) custom reducer has NOT been added
+		if(!this._triggers.has("state")) {
+			this.addTrigger("state", signal => {
+				if(signal.meta.isCoerced) {
+					[ this.state ] = signal.data;
+				} else {
+					this.state = signal.data;
+				}
+			});
+		}
 	}
 
 	deconstructor() {}
@@ -84,8 +97,8 @@ export class Node extends Brood {
 	 * the pre filter (*) handlers or build
 	 * logic into the trigger handlers.
 	 */
-	receive(trigger, ...args) {
-		this.invoke(trigger, ...args);	// If received from .broadcast, args[ 0 ] will be a Message
+	receive(signalOrTrigger, ...args) {
+		this.invoke(signalOrTrigger, ...args);	// If received from .broadcast, args[ 0 ] will be a Message
 
 		return this;
 	}
@@ -94,11 +107,10 @@ export class Node extends Brood {
 	 * Send an invocation command to all
 	 * Nodes in the Mesh.
 	 */
-	broadcast(trigger, ...args) {
+	broadcast(signalOrTrigger, ...args) {
 		for(let node of this._mesh) {
 			if(node !== this) {
-				//NOTE:	For now, limit Messages to be from broadcasting only -- if needed elsewhere, then upgrade concept to a Packet/Message paradigm
-				node.receive(trigger, Signal.Create({ data: args, emitter: this }));
+				node.receive(signalOrTrigger, ...args);
 			}
 		}
 
@@ -153,13 +165,13 @@ export class Node extends Brood {
 	 * A handling abstract to more easily deal with
 	 * batching vs immediate invocations
 	 */
-	_handleInvocation(trigger, ...args) {
+	_handleInvocation(signal) {
 		/**
 		 * ? Pre hooks
 		 * These act as filters iff one returns << true >>
 		 */
-		for(let fn of this._triggers.get("*")) {
-			let result = fn(args, { trigger, node: this });
+		for(let fn of (this._triggers.get("*") || [])) {
+			let result = fn(signal, { trigger: signal.type, node: this });
 
 			if(result === true) {
 				return false;
@@ -168,16 +180,16 @@ export class Node extends Brood {
 
 		let hadMatch = false;
 		for(let [ trig, fns ] of this._triggers) {
-			if(trigger === trig) {
+			if(signal.type === trig) {
 				hadMatch = true;
 				/**
 				 * "state" handlers won't reduce, but could theoretically use
 				 * this._state directly, if needed
 				 */
-				if(this.config.isReducer === true && trigger !== "state") {
+				if(this.config.isReducer === true && signal.type !== "state") {
 					let next;
 					for(let fn of fns) {
-						next = fn(args, { trigger, node: this });
+						next = fn(signal, { trigger: signal.type, node: this });
 					}
 
 					const oldState = this._state;
@@ -186,15 +198,19 @@ export class Node extends Brood {
 					this.invoke("state", { current: this._state, previous: oldState });
 				} else {
 					for(let fn of fns) {
-						fn(args, { trigger, node: this });
+						fn(signal, { trigger: signal.type, node: this });
 					}
 				}
 			}
 		}
 
 		if(hadMatch === false && this._config.allowRPC === true) {
-			if(typeof trigger === "string" && typeof this[ trigger ] === "function") {
-				this[ trigger ](...args);
+			if(typeof signal.type === "string" && typeof this[ signal.type ] === "function") {
+				if(Array.isArray(signal.data)) {
+					this[ signal.type ](...signal.data);
+				} else {
+					this[ signal.type ](signal.data);
+				}
 
 				hadMatch = true;
 			}
@@ -204,8 +220,8 @@ export class Node extends Brood {
 		 * ? Post hooks
 		 * Treat these like Effects
 		 */
-		for(let fn of this._triggers.get("**")) {
-			fn(args, { trigger, node: this });
+		for(let fn of (this._triggers.get("**") || [])) {
+			fn(signal, { trigger: signal.type, node: this });
 		}
 
 		return hadMatch;
@@ -213,22 +229,40 @@ export class Node extends Brood {
 
 	/**
 	 * If in batch mode, add trigger to queue; else,
-	 * handle the invocation immediately
+	 * handle the invocation immediately.
+	 * 
+	 * This is overloaded by either passing a Signal
+	 * directly, or by passing the trigger type and
+	 * data args and a Signal will be created
 	 */
-	invoke(trigger, ...args) {
+	invoke(signalOrTrigger, ...args) {
+		let signal;
+
+		if(Signal.Conforms(signalOrTrigger)) {
+			signal = signalOrTrigger;
+		} else {
+			signal = Signal.Create({
+				type: signalOrTrigger,
+				data: args,
+				emitter: this,
+			}, {
+				coerced: true,
+			});
+		}
+
 		/**
 		 * Short-circuit the invocation if the trigger has not been loaded
 		 */
-		if(!this._triggers.has(trigger)) {
+		if(!this._triggers.has(signal.type) && signal.type !== "state") {
 			return false;
 		}
 
 		if(this._config.isBatchProcessing === true) {
-			this._config.queue.add([ trigger, args ]);
+			this._config.queue.add(signal);
 
 			return true;
 		} else {
-			return this._handleInvocation(trigger, ...args);
+			return this._handleInvocation(signal);
 		}
 	}
 
@@ -245,8 +279,8 @@ export class Node extends Brood {
 		const runSize = Math.min(qty, this._config.maxBatchSize);
 
 		for(let i = 0; i < runSize; i++) {
-			const [ trigger, args ] = queue[ i ];
-			const result = this._handleInvocation(trigger, ...args);
+			const signal = queue[ i ];
+			const result = this._handleInvocation(signal);
 
 			results.push(result);
 		}
@@ -256,8 +290,8 @@ export class Node extends Brood {
 		return results;
 	}
 
-	async asyncInvoke(trigger, ...args) {
-		return await Promise.resolve(this.invoke(trigger, ...args));
+	async asyncInvoke(signalOrTrigger, ...args) {
+		return await Promise.resolve(this.invoke(signalOrTrigger, ...args));
 	}
 	async asyncProcess(qty = this._config.maxBatchSize) {
 		return await Promise.resolve(this.process(qty));

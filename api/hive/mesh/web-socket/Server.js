@@ -1,5 +1,4 @@
 import { WebSocketServer } from "ws";
-import Signal from "../../core/Signal";
 import Node from "./../../core/Node";
 
 export class Server extends Node {
@@ -16,6 +15,8 @@ export class Server extends Node {
 		super({
 			state: {
 				server: wss,
+			},
+			config: {
 				namespace,
 			},
 		});
@@ -31,18 +32,10 @@ export class Server extends Node {
 	}
 
 	bindEvents() {
-		this.state.server.on(Server.EnumTriggers.LISTENING, () => {
-			this.invoke(this.state.namespace(Server.EnumTriggers.LISTENING), Signal.Create({
-				emitter: this,
-				data: client,
-			}));
-		});
+		this.state.server.on(Server.EnumTriggers.LISTENING, () => this.invoke(this.config.namespace(Server.EnumTriggers.LISTENING)));
 
 		this.state.server.on(Server.EnumTriggers.CONNECTION, (client) => {
-			this.invoke(this.state.namespace(Server.EnumTriggers.CONNECTION), Signal.Create({
-				emitter: this,
-				data: client,
-			}));
+			this.invoke(this.config.namespace(Server.EnumTriggers.CONNECTION), client);
 
 			client.on()
 		});

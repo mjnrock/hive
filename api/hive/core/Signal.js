@@ -1,7 +1,9 @@
 import { v4 as uuid } from "uuid";
+import Node from "./Node";
 
 export const frozenKeys = [
 	`id`,
+	`type`,
 	`data`,
 	`emitter`,
 	`timestamp`,
@@ -12,20 +14,29 @@ export const frozenKeys = [
 ];
 
 export class Signal {
-	constructor({ data, emitter, tags = [], meta = {} } = {}, { override = false, timestamp, id } = {}) {
+	constructor({ type, data, emitter, tags = [], meta = {} } = {}, { override = false, coerced = false, timestamp, id } = {}) {
 		this.id = uuid();
+		this.type = type;
 		this.data = data;
-		this.emitter = emitter;
+
+		if(emitter instanceof Node) {
+			this.emitter = emitter.id;
+		} else {
+			this.emitter = emitter;
+		}
+
 		this.timestamp = Date.now();
 
 		this.tags = new Set(tags);
 		this.meta = meta;
+		
+		this.meta.isCoerced = coerced;		// This is more or less a flag variable to identify times when the Signal was created by converting [ trigger, ...args ] into a Signal, instead of a native Signal being passed directly (e.g. identifying whether .data as an Array is meaningful or circumstantial)
 
 		if(override === true) {
 			this.id = id || this.id;
 			this.timestamp = timestamp || this.timestamp;
 
-			this.isClone = true;
+			this.meta.isClone = true;
 		}
 
 		/**
@@ -57,6 +68,7 @@ export class Signal {
 			return true;
 		} else if(typeof obj === "object") {
 			return "id" in obj
+				&& "type" in obj
 				&& "data" in obj
 				&& "emitter" in obj
 				&& "timestamp" in obj;
@@ -76,8 +88,8 @@ export class Signal {
 
 		return Signal.Create(msg);
 	}
-	static Create({ data, emitter } = {}, opts = {}) {
-		return new Signal({ data, emitter }, opts);
+	static Create({ type, data, emitter } = {}, opts = {}) {
+		return new Signal({ type, data, emitter }, opts);
 	}
 };
 
