@@ -17,10 +17,20 @@ export class Node extends Brood {
 			maxBatchSize: 1000,
 
 			namespace: typeof namespace === "function" ? namespace : trigger => trigger,
-			qualifyWithNamespace: true,
 
 			...config,
 		};
+
+		//? Default reducer that is only added if at least one (1) custom reducer has NOT been added
+		if(!this._triggers.has("state")) {
+			this.addTrigger("state", signal => {
+				if(signal.meta.isCoerced) {
+					[ this.state ] = signal.data;
+				} else {
+					this.state = signal.data;
+				}
+			});
+		}
 	}
 
 	deconstructor() {}
@@ -156,19 +166,12 @@ export class Node extends Brood {
 	 * batching vs immediate invocations
 	 */
 	_handleInvocation(signal) {
-		let trigger, namespace = "";
-		if(this.config.qualifyWithNamespace === false) {
-			[ namespace, trigger ] = signal.type.split(":");
-		} else {
-			trigger = signal.type;
-		}
-
 		/**
 		 * ? Pre hooks
 		 * These act as filters iff one returns << true >>
 		 */
 		for(let fn of (this._triggers.get("*") || [])) {
-			let result = fn(signal, { trigger, node: this });
+			let result = fn(signal, { trigger: signal.type, node: this });
 
 			if(result === true) {
 				return false;
@@ -177,16 +180,16 @@ export class Node extends Brood {
 
 		let hadMatch = false;
 		for(let [ trig, fns ] of this._triggers) {
-			if(trigger === trig) {
+			if(signal.type === trig) {
 				hadMatch = true;
 				/**
 				 * "state" handlers won't reduce, but could theoretically use
 				 * this._state directly, if needed
 				 */
-				if(this.config.isReducer === true && (trigger !== "state" && signal.type !== this.config.namespace("state"))) {
+				if(this.config.isReducer === true && signal.type !== "state") {
 					let next;
 					for(let fn of fns) {
-						next = fn(signal, { trigger, node: this });
+						next = fn(signal, { trigger: signal.type, node: this });
 					}
 
 					const oldState = this._state;
@@ -195,18 +198,18 @@ export class Node extends Brood {
 					this.invoke("state", { current: this._state, previous: oldState });
 				} else {
 					for(let fn of fns) {
-						fn(signal, { trigger, node: this });
+						fn(signal, { trigger: signal.type, node: this });
 					}
 				}
 			}
 		}
 
 		if(hadMatch === false && this._config.allowRPC === true) {
-			if(typeof trigger === "string" && typeof this[ trigger ] === "function") {
+			if(typeof signal.type === "string" && typeof this[ signal.type ] === "function") {
 				if(Array.isArray(signal.data)) {
-					this[ trigger ](...signal.data);
+					this[ signal.type ](...signal.data);
 				} else {
-					this[ trigger ](signal.data);
+					this[ signal.type ](signal.data);
 				}
 
 				hadMatch = true;
@@ -239,7 +242,7 @@ export class Node extends Brood {
 			signal = signalOrTrigger;
 		} else {
 			signal = Signal.Create({
-				type: this.config.namespace(signalOrTrigger),
+				type: signalOrTrigger,
 				data: args,
 				emitter: this,
 			}, {
@@ -250,15 +253,8 @@ export class Node extends Brood {
 		/**
 		 * Short-circuit the invocation if the trigger has not been loaded
 		 */
-		if(this.config.qualifyWithNamespace === true) {
-			if(!this._triggers.has(signal.type)) {
-				return false;
-			}
-		} else {
-			let [ ,trigger ] = signal.type.split(":");
-			if(!this._triggers.has(trigger)) {
-				return false;
-			}
+		if(!this._triggers.has(signal.type) && signal.type !== "state") {
+			return false;
 		}
 
 		if(this._config.isBatchProcessing === true) {
