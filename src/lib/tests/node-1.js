@@ -20,11 +20,10 @@ const node = new Node();
 // 	emitter: node,
 // }));
 
-
-node.invoke("state", {
-	cats: 2,
-});
-console.log(node.state);
+// node.invoke("update", {
+// 	cats: 2,
+// });
+// console.log(node.state);
 // node.invoke(node.config.namespace("state"), {
 // 	cats: 4,
 // });

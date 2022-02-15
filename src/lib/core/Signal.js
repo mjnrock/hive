@@ -1,4 +1,4 @@
-import { v4 as uuid } from "uuid";
+import HiveBase from "./HiveBase";
 import Node from "./Node";
 
 export const frozenKeys = [
@@ -13,9 +13,10 @@ export const frozenKeys = [
 	`isClone`,
 ];
 
-export class Signal {
+export class Signal extends HiveBase {
 	constructor({ type, data, emitter, tags = [], meta = {} } = {}, { override = false, coerced = false, timestamp, id } = {}) {
-		this.id = uuid();
+		super(id, tags);
+		
 		this.type = type;
 		this.data = data;
 
@@ -27,16 +28,14 @@ export class Signal {
 
 		this.timestamp = Date.now();
 
-		this.tags = new Set(tags);
-		this.meta = meta;
-		
+		this.meta = meta;		
 		this.meta.isCoerced = coerced;		// This is more or less a flag variable to identify times when the Signal was created by converting [ trigger, ...args ] into a Signal, instead of a native Signal being passed directly (e.g. identifying whether .data as an Array is meaningful or circumstantial)
 
 		if(override === true) {
 			this.id = id || this.id;
 			this.timestamp = timestamp || this.timestamp;
 
-			this.meta.isClone = true;
+			this.meta.isClone = true;	// A flag so write whether or not this Signal was a clone of another Signal -- "isClone" is only present when true
 		}
 
 		/**

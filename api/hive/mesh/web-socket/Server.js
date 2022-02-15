@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import Node from "./../../core/Node";
+import Node from "./../../../../src/lib/core/Node";
 
 export class Server extends Node {
 	static Namespace = trigger => `Websocket.Server:${ trigger }`;

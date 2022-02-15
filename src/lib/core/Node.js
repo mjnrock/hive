@@ -1,7 +1,21 @@
-import Brood from "./Brood";
+import HiveBase from "./HiveBase";
 import Signal from "./Signal";
 
-export class Node extends Brood {
+export class Node extends HiveBase {
+	static ReducerTriggers = {
+		Invoke: "update",
+		Notify: "state",
+		Handler: function(signal) {	// Handler is here as a reference in case it needs to be removed as a handler and will be bound to the Node in the constructor
+			if(signal.meta.isCoerced) {
+				// (Implicit data) Functionally, this occurs when a Signal was created ad hoc, and the original @args were condensed into an array and assigned to .data, thus unpackage
+				[ this.state ] = signal.data;
+			} else {
+				// (Explicit data) A Signal was explicitly created, so use w/e data was present in the Signal
+				this.state = signal.data;
+			}
+		},
+	};
+
 	constructor({ id, state = {}, mesh = [], config = {}, triggers = [], tags = [], namespace } = {}) {
 		super(id, tags);
 		
@@ -16,24 +30,17 @@ export class Node extends Brood {
 			isBatchProcessing: false,
 			maxBatchSize: 1000,
 
+			//TODO There's a lot of nuance here that needs to be worked out, but key here added as a future addition
 			namespace: typeof namespace === "function" ? namespace : trigger => trigger,
 
 			...config,
 		};
 
 		//? Default reducer that is only added if at least one (1) custom reducer has NOT been added
-		if(!this._triggers.has("state")) {
-			this.addTrigger("state", signal => {
-				if(signal.meta.isCoerced) {
-					[ this.state ] = signal.data;
-				} else {
-					this.state = signal.data;
-				}
-			});
+		if(!this._triggers.has(Node.ReducerTriggers.Invoke)) {
+			this.addTrigger(Node.ReducerTriggers.Invoke, Node.ReducerTriggers.Handler.bind(this));
 		}
 	}
-
-	deconstructor() {}
 
 	get state() {
 		return this._state;
@@ -71,6 +78,24 @@ export class Node extends Brood {
 		return this;
 	}
 
+	/**
+	 * Convenience function for toggling/altering configuration booleans -- must be a boolean
+	 */
+	toggle(configAttribute, newValue) {
+		if(typeof this.config[ configAttribute ] === "boolean") {
+			if(typeof newValue === "boolean") {	
+				this.config[ configAttribute ] = newValue;
+			} else {
+				this.config[ configAttribute ] = !this.config[ configAttribute ];
+			}
+		}
+
+		return this;
+	}
+	assert(configAttribute, expectedValue) {
+		return this.config[ configAttribute] === expectedValue;
+	}
+
 	enmesh(node, binary = false) {
 		this._mesh.add(node);
 
@@ -89,12 +114,9 @@ export class Node extends Brood {
 	}
 
 	/**
-	 * A middleware function that routes an
-	 * invocation command via a Mesh request
-	 * by a .broadcast call.  This can be
-	 * reassigned externally to change the
-	 * receiving logic, but attempt to use
-	 * the pre filter (*) handlers or build
+	 * A middleware function that routes an invocation command via a Mesh request
+	 * by a .broadcast call.  This can be reassigned externally to change the
+	 * receiving logic, but attempt to use the pre filter (*) handlers or build
 	 * logic into the trigger handlers.
 	 */
 	receive(signalOrTrigger, ...args) {
@@ -166,12 +188,15 @@ export class Node extends Brood {
 	 * batching vs immediate invocations
 	 */
 	_handleInvocation(signal) {
+		// Many contingent handlers receive the same payload, so abstract it here
+		const payload = [ signal, { trigger: signal.type, node: this } ];
+
 		/**
 		 * ? Pre hooks
-		 * These act as filters iff one returns << true >>
+		 * These act as filters iff one returns << true >> and will cease execution immediately (i.e. no handlers or effects will be processed)
 		 */
 		for(let fn of (this._triggers.get("*") || [])) {
-			let result = fn(signal, { trigger: signal.type, node: this });
+			let result = fn(...payload);
 
 			if(result === true) {
 				return false;
@@ -179,33 +204,40 @@ export class Node extends Brood {
 		}
 
 		let hadMatch = false;
-		for(let [ trig, fns ] of this._triggers) {
-			if(signal.type === trig) {
+		for(let [ trigger, handlers ] of this._triggers) {
+			if(signal.type === trigger) {
 				hadMatch = true;
 				/**
 				 * "state" handlers won't reduce, but could theoretically use
 				 * this._state directly, if needed
 				 */
-				if(this.config.isReducer === true && signal.type !== "state") {
+				if(this.config.isReducer === true && signal.type !== Node.ReducerTriggers.Notify) {
 					let next;
-					for(let fn of fns) {
-						next = fn(signal, { trigger: signal.type, node: this });
+					// Execute all handlers before continuing
+					for(let handler of handlers) {
+						next = handler(...payload);
 					}
 
 					const oldState = this._state;
 					this._state = next;
 
-					this.invoke("state", { current: this._state, previous: oldState });
+					this.invoke(Node.ReducerTriggers.Notify, { current: this._state, previous: oldState });
 				} else {
-					for(let fn of fns) {
-						fn(signal, { trigger: signal.type, node: this });
+					// Execute all handlers before continuing
+					for(let handler of handlers) {
+						handler(...payload);
 					}
 				}
 			}
 		}
 
+		// Only execute below if a trigger handler did not exist AND Node is configured to accept RPC
+		//? Note, there are limitations to this usage paradigm, so explicitly define a custom RPC handler to handle such cases (e.g. .update vis-a-vis "update")
 		if(hadMatch === false && this._config.allowRPC === true) {
+			// Verify that the RPC has a landing method
 			if(typeof signal.type === "string" && typeof this[ signal.type ] === "function") {
+				//!	If the .data is an Array, expand it -- you may need to array-wrap the data payload depending on how .invoke was called (cf .invoke @args)
+				// * As a general rule, explicitly create a Signal when performing RPC
 				if(Array.isArray(signal.data)) {
 					this[ signal.type ](...signal.data);
 				} else {
@@ -221,7 +253,7 @@ export class Node extends Brood {
 		 * Treat these like Effects
 		 */
 		for(let fn of (this._triggers.get("**") || [])) {
-			fn(signal, { trigger: signal.type, node: this });
+			fn(...payload);
 		}
 
 		return hadMatch;
@@ -253,7 +285,7 @@ export class Node extends Brood {
 		/**
 		 * Short-circuit the invocation if the trigger has not been loaded
 		 */
-		if(!this._triggers.has(signal.type) && signal.type !== "state") {
+		if(!this._triggers.has(signal.type)) {
 			return false;
 		}
 
@@ -264,6 +296,17 @@ export class Node extends Brood {
 		} else {
 			return this._handleInvocation(signal);
 		}
+	}
+	/**
+	 * If the ReducerTriggers Handler is still present, update will modify the state directly via the default function
+	 * If it is not present, this would act as a lazy way to invoke ReducerTriggers Invoke more easily
+	 * 
+	 * In either case, .update returns this and thus can be chained
+	 */
+	update(...reducerArgs) {
+		this.invoke(Node.ReducerTriggers.Invoke, ...reducerArgs);
+
+		return this;
 	}
 
 	/**
@@ -300,10 +343,10 @@ export class Node extends Brood {
 	static Create(obj = {}) {
 		return new Node(obj);
 	}
-	static Factor(qty = 1, fnOrObj) {
+	static Factory(qty = 1, fnOrObj) {
 		let nodes = [];
 		for(let i = 0; i < qty; i++) {
-			let node = Node.Create(typeof fnOrObj === "function" ? fnOrObj(i) : fnOrObj);
+			let node = Node.Create(typeof fnOrObj === "function" ? fnOrObj(i, qty) : fnOrObj);
 
 			nodes.push(node);
 		}
