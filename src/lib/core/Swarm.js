@@ -5,14 +5,21 @@ import Node from "./Node";
 export const frozenKeys = [
 	`id`,
 	`connexions`,
+	`qualifier`,
 ];
 
 export class Swarm extends Brood {
-	constructor(members = []) {
+	constructor(qualifier, { members = [] } = {}) {
 		super();
-
+		
+		// This is used to deteremine whether a Node is allowed to join the Swarm -- true allows a connection, false denies it
+		if(typeof qualifier === "function") {
+			this.qualifier = qualifier;
+		} else {
+			this.qualifier = () => true;
+		}
+		
 		this.connexions = new Set();
-
 		this.connect(members);
 
 		return new Proxy(this, {
@@ -47,11 +54,13 @@ export class Swarm extends Brood {
 			return this;
 		}
 
-		if(node instanceof Node) {
+		if(node instanceof Node && this.qualifier(node) === true) {
 			this.connexions.add(node);
+
+			return (...args) => this.emit.call(this, ...args);
 		}
 
-		return (...args) => this.emit.call(this, ...args);
+		return false;
 	}
 	disconnect(node) {
 		if(Array.isArray(node)) {
@@ -73,7 +82,7 @@ export class Swarm extends Brood {
 		if(this.connexions.has(requester)) {
 			for(let member of this.connexions) {
 				if(member !== requester) {
-					member.receive(trigger, Signal.Create({ data: args, emitter: requester, meta:{ pylon: this.id } }));
+					member.receive(Signal.Create({ type: trigger, data: args, emitter: requester, meta:{ pylon: this.id } }));
 				}
 			}
 

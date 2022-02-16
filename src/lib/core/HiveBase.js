@@ -1,4 +1,4 @@
-import { v4 as uuid } from "uuid";
+import { validate, v4 as uuid } from "uuid";
 
 export class HiveBase {
 	constructor(id, tags = []) {
@@ -9,7 +9,7 @@ export class HiveBase {
 	deconstructor() {}
 
 	alterTags(add = [], remove = []) {
-		// Override for @add with form: add = [ add_0, add_1 ] = [ add, remove ]
+		// Override for @add with form: add = [ add_0[], add_1[] ] = [ add, remove ]
 		if(Array.isArray(add) && Array.isArray(add[ 0 ]) && Array.isArray(add[ 1 ])) {
 			remove = add[ 1 ];
 			add = add[ 0 ];
@@ -28,6 +28,10 @@ export class HiveBase {
 
 		return this;
 	}
+
+	static GenerateUUID = () => uuid();
+	static IsUUID = input => validate(input);
+	static IsHiveBase = input => input instanceof HiveBase;
 };
 
 export default HiveBase;
