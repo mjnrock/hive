@@ -1,13 +1,13 @@
 import { validate, v4 as uuid } from "uuid";
 
 export class HiveBase {
+
 	constructor(id, tags = []) {
 		this.id = id || uuid();
 		this.tags = new Set(...tags);
 	}
 
 	deconstructor() {}
-
 	alterTags(add = [], remove = []) {
 		// Override for @add with form: add = [ add_0[], add_1[] ] = [ add, remove ]
 		if(Array.isArray(add) && Array.isArray(add[ 0 ]) && Array.isArray(add[ 1 ])) {

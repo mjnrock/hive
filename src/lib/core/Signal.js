@@ -6,6 +6,7 @@ export const frozenKeys = [
 	`type`,
 	`data`,
 	`emitter`,
+	`destination`,
 	`timestamp`,
 	`id`,
 	`tags`,
@@ -14,7 +15,7 @@ export const frozenKeys = [
 ];
 
 export class Signal extends HiveBase {
-	constructor({ type, data, emitter, tags = [], meta = {} } = {}, { override = false, coerced = false, timestamp, id } = {}) {
+	constructor({ type, data, emitter, destination, tags = [], meta = {} } = {}, { override = false, coerced = false, timestamp, id } = {}) {
 		super(id, tags);
 		
 		this.type = type;
@@ -24,6 +25,12 @@ export class Signal extends HiveBase {
 			this.emitter = emitter.id;
 		} else {
 			this.emitter = emitter;
+		}
+
+		if(destination instanceof Node) {
+			this.destination = destination.id;
+		} else {
+			this.destination = destination;
 		}
 
 		this.timestamp = Date.now();
@@ -70,6 +77,7 @@ export class Signal extends HiveBase {
 				&& "type" in obj
 				&& "data" in obj
 				&& "emitter" in obj
+				// && "destination" in obj	// Optional
 				&& "timestamp" in obj;
 		}
 
@@ -87,8 +95,8 @@ export class Signal extends HiveBase {
 
 		return Signal.Create(msg);
 	}
-	static Create({ type, data, emitter } = {}, opts = {}) {
-		return new Signal({ type, data, emitter }, opts);
+	static Create({ type, data, emitter, ...rest } = {}, opts = {}) {
+		return new Signal({ type, data, emitter, ...rest }, opts);
 	}
 };
 

@@ -2,6 +2,8 @@ import HiveBase from "./HiveBase";
 import Signal from "./Signal";
 
 export class Node extends HiveBase {
+	static $;
+	static CommandCharacter = "$";		// Set the command-tag prefix here (df: "$")
 	static ReducerTriggers = {
 		Invoke: "update",
 		Notify: "state",
@@ -16,10 +18,12 @@ export class Node extends HiveBase {
 		},
 	};
 
-	constructor({ id, state = {}, mesh = [], config = {}, triggers = [], tags = [], namespace } = {}) {
+	constructor({ id, state, mesh = [], config = {}, triggers = [], tags = [], namespace } = {}) {
 		super(id, tags);
 		
-		this._state = state;
+		this._state = new Map([[ "state", {} ]]);	// Split out like this in case @state is a Map
+		this.state = state;
+
 		this._triggers = new Map(...triggers);
 		this._mesh = new Set(...mesh);
 		this._config = {
@@ -43,10 +47,14 @@ export class Node extends HiveBase {
 	}
 
 	get state() {
-		return this._state;
+		return this._state.get("state");
 	}
 	set state(state = {}) {
-		this._state = state;
+		if(state instanceof Map) {
+			this._state = state;
+		} else {
+			this._state.set("state", state);
+		}
 
 		return this;
 	}
@@ -56,6 +64,10 @@ export class Node extends HiveBase {
 	}
 	set triggers(triggers) {
 		this._triggers = new Map(...triggers);
+
+		for(let trigger of triggers) {
+			this._state.set(trigger, {});
+		}
 
 		return this;
 	}
@@ -189,7 +201,20 @@ export class Node extends HiveBase {
 	 */
 	_handleInvocation(signal) {
 		// Many contingent handlers receive the same payload, so abstract it here
-		const payload = [ signal, { trigger: signal.type, node: this } ];
+		const payload = [ signal, {
+			trigger: signal.type,
+			node: this,
+			state: this._state.get(signal.type),
+			globalState: this.state,
+			broadcast: this.broadcast,
+			invoke: this.invoke,
+		} ];
+
+		if(typeof signal.type === "string" && signal.type[ 0 ] === Node.CommandCharacter) {
+			//TODO	Route the signal to Node.$ (i.e. Nexus)
+
+			return true;
+		}
 
 		/**
 		 * ? Pre hooks
@@ -218,10 +243,10 @@ export class Node extends HiveBase {
 						next = handler(...payload);
 					}
 
-					const oldState = this._state;
-					this._state = next;
+					const oldState = this._state.get(trigger);
+					this._state.set(trigger, next);
 
-					this.invoke(Node.ReducerTriggers.Notify, { current: this._state, previous: oldState });
+					this.invoke(Node.ReducerTriggers.Notify, { current: next, previous: oldState });
 				} else {
 					// Execute all handlers before continuing
 					for(let handler of handlers) {

@@ -25,3 +25,30 @@ const node2 = new Node();
 node.tags = [[ "cat" ]];
 console.log(node.tags);
 console.log(node2.tags);
+
+
+
+
+
+// node.addTrigger("test", (...args) => {
+// 	console.log(args);
+// });
+// node.addTrigger(node.config.namespace("test"), (...args) => {
+// 	console.log(args);
+// });
+
+// node.invoke("test", 1, 2, 3);
+// node.invoke(Signal.Create({
+// 	type: "test",
+// 	data: 9,
+// 	emitter: node,
+// }));
+
+// node.invoke("update", {
+// 	cats: 2,
+// });
+// console.log(node.state);
+// node.invoke(node.config.namespace("state"), {
+// 	cats: 4,
+// });
+// console.log(node.state);

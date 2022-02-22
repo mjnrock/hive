@@ -8,7 +8,7 @@ import Node from "./Node";
  * methods invoke, usually with Nexus.$ (i.e. many static methods work directly on the current
  * .Instance instead of performing work abstractly)
  */
-export class Nexus extends HiveBase {
+export class Nexus extends Node {
 	static Instance;	// Lazy-loaded singleton reference for Nexus
 
 	constructor({ registry = [], id, tags = [] } = {}) {
@@ -18,13 +18,17 @@ export class Nexus extends HiveBase {
 		
 		if(!(Nexus.Instance instanceof Nexus)) {
 			Nexus.Instance = this;
+			Node.$ = this;
 		}
 	}
 
 	// Smart accessor that will create a singleton instance if one does not exist
 	static get $() {
 		if(!(Nexus.Instance instanceof Nexus)) {
-			Nexus.Instance = new Nexus();
+			const nexus = new Nexus();
+
+			Nexus.Instance = nexus;
+			Node.$ = nexus;
 		}
 
 		return Nexus.Instance;
