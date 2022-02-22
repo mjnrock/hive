@@ -9,6 +9,8 @@ export const frozenKeys = [
 ];
 
 export class Swarm extends Brood {
+	static DefaultQualifier = () => true;
+
 	constructor(qualifier, { members = [] } = {}) {
 		super();
 		
@@ -16,7 +18,7 @@ export class Swarm extends Brood {
 		if(typeof qualifier === "function") {
 			this.qualifier = qualifier;
 		} else {
-			this.qualifier = () => true;
+			this.qualifier = Swarm.DefaultQualifier;	// Abstracted to provide a reference, if needed
 		}
 		
 		this.connexions = new Set();
