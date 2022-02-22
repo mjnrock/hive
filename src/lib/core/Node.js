@@ -2,18 +2,18 @@ import HiveBase from "./HiveBase";
 import Signal from "./Signal";
 
 export class Node extends HiveBase {
-	static $;
+	static $;	// Singleton reference to -- and injected by -- Nexus
 	static CommandCharacter = "$";		// Set the command-tag prefix here (df: "$")
-	static ReducerTriggers = {
-		Invoke: "update",
-		Notify: "state",
-		Handler: function(signal) {	// Handler is here as a reference in case it needs to be removed as a handler and will be bound to the Node in the constructor
+	static StateTrigger = {
+		Invoke: "state",
+		Notify: "change",
+		DefaultReducer: function(signal) {	// Handler is here as a reference in case it needs to be removed as a handler and will be bound to the Node in the constructor
 			if(signal.meta.isCoerced) {
 				// (Implicit data) Functionally, this occurs when a Signal was created ad hoc, and the original @args were condensed into an array and assigned to .data, thus unpackage
-				[ this.state ] = signal.data;
+				return signal.data[ 0 ];
 			} else {
 				// (Explicit data) A Signal was explicitly created, so use w/e data was present in the Signal
-				this.state = signal.data;
+				return signal.data;
 			}
 		},
 	};
@@ -21,7 +21,7 @@ export class Node extends HiveBase {
 	constructor({ id, state, mesh = [], config = {}, triggers = [], tags = [], namespace } = {}) {
 		super(id, tags);
 		
-		this._state = new Map([[ "state", {} ]]);	// Split out like this in case @state is a Map
+		this._state = new Map([[ Node.StateTrigger.Invoke, {} ]]);	// Split out like this in case @state is a Map
 		this.state = state;
 
 		this._triggers = new Map(...triggers);
@@ -41,19 +41,19 @@ export class Node extends HiveBase {
 		};
 
 		//? Default reducer that is only added if at least one (1) custom reducer has NOT been added
-		if(!this._triggers.has(Node.ReducerTriggers.Invoke)) {
-			this.addTrigger(Node.ReducerTriggers.Invoke, Node.ReducerTriggers.Handler.bind(this));
+		if(!this._triggers.has(Node.StateTrigger.Invoke)) {
+			this.addTrigger(Node.StateTrigger.Invoke, Node.StateTrigger.DefaultReducer.bind(this));
 		}
 	}
 
 	get state() {
-		return this._state.get("state");
+		return this._state.get(Node.StateTrigger.Invoke);
 	}
 	set state(state = {}) {
 		if(state instanceof Map) {
 			this._state = state;
 		} else {
-			this._state.set("state", state);
+			this._state.set(Node.StateTrigger.Invoke, state);
 		}
 
 		return this;
@@ -152,6 +152,11 @@ export class Node extends HiveBase {
 	}
 
 
+	getState(trigger = Node.StateTrigger.Invoke) {
+		return this._state.get(trigger);
+	}
+
+
 	/**
 	 * @trigger can be anything, not limited to strings
 	 */
@@ -164,7 +169,15 @@ export class Node extends HiveBase {
 			handlers = value;
 		}
 
-		handlers.add(handler);
+		if(typeof handler === "function") {
+			handlers.add(handler);
+		} else {
+			handlers.add(Node.StateTrigger.DefaultReducer);
+		}
+
+		if(typeof this._state.get(trigger) !== "object") {
+			this._state.set(trigger, {});
+		}
 
 		return this;
 	}
@@ -236,7 +249,7 @@ export class Node extends HiveBase {
 				 * "state" handlers won't reduce, but could theoretically use
 				 * this._state directly, if needed
 				 */
-				if(this.config.isReducer === true && signal.type !== Node.ReducerTriggers.Notify) {
+				if(this.config.isReducer === true && signal.type !== Node.StateTrigger.Notify) {
 					let next;
 					// Execute all handlers before continuing
 					for(let handler of handlers) {
@@ -246,7 +259,7 @@ export class Node extends HiveBase {
 					const oldState = this._state.get(trigger);
 					this._state.set(trigger, next);
 
-					this.invoke(Node.ReducerTriggers.Notify, { current: next, previous: oldState });
+					this.invoke(Node.StateTrigger.Notify, { current: next, previous: oldState });
 				} else {
 					// Execute all handlers before continuing
 					for(let handler of handlers) {
@@ -329,7 +342,7 @@ export class Node extends HiveBase {
 	 * In either case, .update returns this and thus can be chained
 	 */
 	update(...reducerArgs) {
-		this.invoke(Node.ReducerTriggers.Invoke, ...reducerArgs);
+		this.invoke(Node.StateTrigger.Invoke, ...reducerArgs);
 
 		return this;
 	}
