@@ -24,6 +24,35 @@ export class Node extends HiveBase {
 		this._state = new Map([[ Node.StateTrigger.Invoke, {} ]]);	// Split out like this in case @state is a Map
 		this.state = state;
 
+		this._components = new Map();
+		//TODO Create an ECS paradigm where
+		/**
+		 * 1a) Component classes contain a << name >>, << state >>, and a << single-function handler map >> (e.g. { event: handler, ... })
+		 * 	Make these event handlers basically just native methods, whereby the Component is invoked via RPC
+		 *  Either make .name required, or create get trap to return the .id if .name is optional and absent
+		 * 1b) Component classes contain a << name >>, << state >> and are housed internally within the Node
+		 * 	System classes contain a << Map<trigger, fns[]> >>, and optional internal methods that the handlers will be given access to as an destructurable input parameter @methods
+		 * 	ALL components are reducers, but if a fn returns nothing, the current state will remain unchanged
+		 * 	In this scenario, the Component and the System should be abstracted into a single higher-order object/class
+		 * 1c) Take 1a/1b ECS ideas and merge it with original Overlay idea that does everything from Overlay but within a ComponentName scope
+		 * 	This should also maintain the paradigm of:
+		 * 		Node.ComponentName --> Component..state
+		 * 		Injecting a Component into a Node registers a .dispatch(ComponentName, ...args) function to the Node (similar to .receive, but for Components)
+		 * 		Component..state is immutable and must be altered by invoking the associated handlers
+		 * 		Component handlers can be invoked either by: Adding ":ComponentName" as a Signal tag OR a Signal.type === ComponentName:trigger
+		 * 			New precendence order is thus: ComponentName, trigger, method
+		 * 		Component state changes do not bubble, but since they are Nodes, can be subscribed to directly
+		 * 	Create an Overlay for a Node to become a: Component, Nexus
+		 * 	Use TitleCase for ComponentNames
+		 * 2) The Component .state is mapped to the { ":ComponentName": state } in << this.state >>
+		 * 	Attempting to add a handler with a ":" prefix is disallowed by << .addTrigger >>
+		 * 	Consider consolidating ALL of the component states into { $: Map<ComponentName, state> }
+		 * 3) On a Node, accessing << .ComponentName >> returns the state of that Component with matching << name >>
+		 * 4) If a Signal << .tag >> contains << :ComponentName >> then it will route it directly to the Component instead of handling it
+		 * 5) Invoking << .on___ = fn|fn[] >> and assigning a function or an array of functions acts as << addTrigger(s)(___, fn|fn[]) >>
+		 * 	This is most easily done in a Proxy trap
+		 */
+
 		this._triggers = new Map(...triggers);
 		this._mesh = new Set(...mesh);
 		this._config = {
