@@ -1,9 +1,18 @@
 import HiveBase from "./HiveBase";
 import Signal from "./Signal";
 
+/**
+ * In normal usage, any Node should be .Spawn[ed] by a Nexus
+ */
 export class Node extends HiveBase {
 	static $;	// Singleton reference to -- and injected by -- Nexus
-	static CommandCharacter = "$";		// Set the command-tag prefix here (df: "$")
+	static MetaCharacters = {
+		Command: "$",
+		Component: ":",
+		Filter: "*",
+		Effect: "**",
+	};
+	
 	static StateTrigger = {
 		Invoke: "state",
 		Notify: "change",
@@ -18,13 +27,12 @@ export class Node extends HiveBase {
 		},
 	};
 
-	constructor({ id, state, mesh = [], config = {}, triggers = [], tags = [], namespace } = {}) {
+	constructor({ id, state, mesh = [], config = {}, triggers = [], tags = [], namespace, components = [] } = {}) {
 		super(id, tags);
 		
-		this._state = new Map([[ Node.StateTrigger.Invoke, {} ]]);	// Split out like this in case @state is a Map
-		this.state = state;
-
+		this._state = {};
 		this._components = new Map();
+
 		//TODO Create an ECS paradigm where
 		/**
 		 * 1a) Component classes contain a << name >>, << state >>, and a << single-function handler map >> (e.g. { event: handler, ... })
@@ -68,6 +76,9 @@ export class Node extends HiveBase {
 
 			...config,
 		};
+		
+		this.state = state;
+		this.components = components;
 
 		//? Default reducer that is only added if at least one (1) custom reducer has NOT been added
 		if(!this._triggers.has(Node.StateTrigger.Invoke)) {
@@ -76,13 +87,11 @@ export class Node extends HiveBase {
 	}
 
 	get state() {
-		return this._state.get(Node.StateTrigger.Invoke);
+		return this._state;
 	}
 	set state(state = {}) {
-		if(state instanceof Map) {
+		if(typeof state === "object") {
 			this._state = state;
-		} else {
-			this._state.set(Node.StateTrigger.Invoke, state);
 		}
 
 		return this;
@@ -92,10 +101,12 @@ export class Node extends HiveBase {
 		return this._triggers;
 	}
 	set triggers(triggers) {
-		this._triggers = new Map(...triggers);
-
-		for(let trigger of triggers) {
-			this._state.set(trigger, {});
+		if(Array.isArray(triggers)) {
+			if(Array.isArray(triggers[ 0 ])) {
+				this._triggers = new Map(triggers);
+			}
+		} else if(triggers instanceof Map) {
+			this._triggers = triggers;
 		}
 
 		return this;
@@ -105,7 +116,30 @@ export class Node extends HiveBase {
 		return this._mesh;
 	}
 	set mesh(mesh) {
-		this._mesh = new Set(...mesh);
+		if(Array.isArray(mesh)) {
+			this._mesh = new Set(mesh);
+		} else if(mesh instanceof Set) {
+			this._mesh = mesh;
+		}
+
+		return this;
+	}
+
+	get components() {
+		return this._components;
+	}
+	set components(components = []) {
+		if(Array.isArray(components)) {
+			if(Array.isArray(components[ 0 ])) {
+				this._components = new Map(components);
+			} else {
+				for(let comp of components) {
+					this._components.set(components.id, comp);
+				}
+			}
+		} else if(components instanceof Map) {
+			this._components = components;
+		}
 
 		return this;
 	}
@@ -134,7 +168,7 @@ export class Node extends HiveBase {
 		return this;
 	}
 	assert(configAttribute, expectedValue) {
-		return this.config[ configAttribute] === expectedValue;
+		return this.config[ configAttribute ] === expectedValue;
 	}
 
 	enmesh(node, binary = false) {
@@ -181,32 +215,17 @@ export class Node extends HiveBase {
 	}
 
 
-	getState(trigger = Node.StateTrigger.Invoke) {
-		return this._state.get(trigger);
-	}
-
-
 	/**
 	 * @trigger can be anything, not limited to strings
 	 */
 	addTrigger(trigger, handler) {
-		let handlers = this._triggers.get(trigger);
-
-		if(!(handlers instanceof Set)) {
-			let value = new Set();
-			this._triggers.set(trigger, value);
-			handlers = value;
-		}
-
+		let handlers = this._triggers.get(trigger) || new Set();
+		
 		if(typeof handler === "function") {
 			handlers.add(handler);
-		} else {
-			handlers.add(Node.StateTrigger.DefaultReducer);
 		}
 
-		if(typeof this._state.get(trigger) !== "object") {
-			this._state.set(trigger, {});
-		}
+		this._triggers.set(trigger, handlers);
 
 		return this;
 	}
@@ -242,27 +261,33 @@ export class Node extends HiveBase {
 	 * batching vs immediate invocations
 	 */
 	_handleInvocation(signal) {
+		if(typeof signal.type === "string") {
+			if(signal.type[ 0 ] === Node.MetaCharacters.Component) {
+				//TODO Route the signal to the Component System
+				
+				return true;
+			} else if(signal.type[ 0 ] === Node.MetaCharacters.Command) {
+				//TODO	Route the signal to Node.$ (i.e. Nexus)
+	
+				return true;
+			}
+		}
+
 		// Many contingent handlers receive the same payload, so abstract it here
 		const payload = [ signal, {
 			trigger: signal.type,
 			node: this,
-			state: this._state.get(signal.type),
+			state: this._state,
 			globalState: this.state,
 			broadcast: this.broadcast,
 			invoke: this.invoke,
 		} ];
 
-		if(typeof signal.type === "string" && signal.type[ 0 ] === Node.CommandCharacter) {
-			//TODO	Route the signal to Node.$ (i.e. Nexus)
-
-			return true;
-		}
-
 		/**
 		 * ? Pre hooks
 		 * These act as filters iff one returns << true >> and will cease execution immediately (i.e. no handlers or effects will be processed)
 		 */
-		for(let fn of (this._triggers.get("*") || [])) {
+		for(let fn of (this._triggers.get(Node.MetaCharacters.Filter) || [])) {
 			let result = fn(...payload);
 
 			if(result === true) {
@@ -281,12 +306,17 @@ export class Node extends HiveBase {
 				if(this.config.isReducer === true && signal.type !== Node.StateTrigger.Notify) {
 					let next;
 					// Execute all handlers before continuing
-					for(let handler of handlers) {
-						next = handler(...payload);
+
+					if(handlers.size === 0) {
+						next = Node.StateTrigger.DefaultReducer(...payload);
+					} else {
+						for(let handler of handlers) {
+							next = handler(...payload);
+						}
 					}
 
-					const oldState = this._state.get(trigger);
-					this._state.set(trigger, next);
+					const oldState = this._state;
+					this._state = next;
 
 					this.invoke(Node.StateTrigger.Notify, { current: next, previous: oldState });
 				} else {
@@ -319,7 +349,7 @@ export class Node extends HiveBase {
 		 * ? Post hooks
 		 * Treat these like Effects
 		 */
-		for(let fn of (this._triggers.get("**") || [])) {
+		for(let fn of (this._triggers.get(Node.MetaCharacters.Effect) || [])) {
 			fn(...payload);
 		}
 
