@@ -11,8 +11,8 @@ export const frozenKeys = [
 export class Swarm extends HiveBase {
 	static DefaultQualifier = () => true;
 
-	constructor(qualifier, { members = [], id, tags = [] } = {}) {
-		super(id, tags);
+	constructor(qualifier, { members = [], ...opts } = {}) {
+		super({ ...opts });
 		
 		// This is used to deteremine whether a Node is allowed to join the Swarm -- true allows a connection, false denies it
 		if(typeof qualifier === "function") {

@@ -15,8 +15,8 @@ export const frozenKeys = [
 ];
 
 export class Signal extends HiveBase {
-	constructor({ type, data, emitter, destination, tags = [], meta = {} } = {}, { override = false, coerced = false, timestamp, id } = {}) {
-		super(id, tags);
+	constructor({ type, data, emitter, destination, tags = [], meta = {}, parent } = {}, { override = false, coerced = false, timestamp, id } = {}) {
+		super({ id, tags, parent });
 		
 		this.type = type;
 		this.data = data;

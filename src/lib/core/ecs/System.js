@@ -1,8 +1,9 @@
-import Node from "./../Node";
+import Nexus from "../Nexus";
+import Swarm from "../Swarm";
 
-export class System extends Node {
-	constructor({ id, tags = [] } = {}) {
-		super({ id, tags });
+export class System extends Swarm {
+	constructor(qualifier, { ...opts } = {}) {
+		super(qualifier, { ...opts, parent: Nexus.$ });
 	}
 };
 

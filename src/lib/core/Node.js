@@ -24,8 +24,8 @@ export class Node extends HiveBase {
 		return signal.data;
 	}
 
-	constructor({ id, state, mesh = [], config = {}, triggers = [], tags = [], namespace, components = [] } = {}) {
-		super(id, tags);
+	constructor({ id, state, parent, mesh = [], config = {}, triggers = [], tags = [], namespace, components = [] } = {}) {
+		super({ id, tags, parent });
 		
 		this._state = {};
 		this._components = new Map();

@@ -1,22 +1,18 @@
-import System from "./System";
+import HiveBase from "../HiveBase";
 
-export class Component {
+export class Component extends HiveBase {
 	static System;
 
-	constructor({ ...opts } = {}) {
-		//TODO Establish a paradigm for Components
+	constructor(parent, { config, ...opts } = {}) {
+		super({ parent, ...opts });
+
+		this.config = {
+			dispatchToParent: false,
+			...config,
+		};
 	}
 
-	/**
-	 * Allow for inheritence to assign a System locally -- invoke in progeny constructor
-	 */
-	static Assign(system) {
-		if(!(this.System instanceof System)) {
-			this.System = system;
-		}
-
-		return this;
-	}
+	dispatch(action, ...args) {}
 }
 
 export default Component;

@@ -1,10 +1,24 @@
 import { validate, v4 as uuid } from "uuid";
 
 export class HiveBase {
+	static Instance;
+	
 
-	constructor(id, tags = []) {
+	constructor({ id, tags = [], parent = null }) {
+		this.parent = parent;
 		this.id = id || uuid();
 		this.tags = new Set(tags);
+	}
+
+	// Smart accessor that will create a singleton instance if one does not exist
+	static get $() {
+		if(!(this.Instance instanceof this)) {
+			const hbase = new this();
+
+			this.Instance = hbase;
+		}
+
+		return this.Instance;
 	}
 
 	deconstructor() {}

@@ -11,10 +11,11 @@ import Node from "./Node";
 export class Nexus extends Node {
 	static Instance;	// Lazy-loaded singleton reference for Nexus
 
-	constructor({ registry = [], id, tags = [] } = {}) {
+	constructor({ systems = [], registry = [], id, tags = [] } = {}) {
 		super(id, tags);
 
 		this.registry = new Map(registry);
+		this.systems = new Map(systems);
 		
 		if(!(Nexus.Instance instanceof Nexus)) {
 			Nexus.Instance = this;
