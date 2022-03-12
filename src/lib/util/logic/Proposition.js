@@ -236,10 +236,10 @@ export class Proposition {
     }
 
     static New(props, flags) {
-        return new Proposition(props, flags);
+		return new Proposition(props, flags);
     }
     static Test(props, flags, ...args) {
-        return Proposition.New(props, flags).test(...args);
+		return Proposition.New(props, flags).test(...args);
     }
 
     static OR(...props) {
