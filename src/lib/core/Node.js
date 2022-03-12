@@ -13,19 +13,16 @@ export class Node extends HiveBase {
 		Effect: "**",
 	};
 	
-	static StateTrigger = {
-		Invoke: "state",
-		Notify: "change",
-		DefaultReducer: function(signal) {	// Handler is here as a reference in case it needs to be removed as a handler and will be bound to the Node in the constructor
-			if(signal.meta.isCoerced) {
-				// (Implicit data) Functionally, this occurs when a Signal was created ad hoc, and the original @args were condensed into an array and assigned to .data, thus unpackage
-				return signal.data[ 0 ];
-			} else {
-				// (Explicit data) A Signal was explicitly created, so use w/e data was present in the Signal
-				return signal.data;
-			}
-		},
-	};
+	static StateTrigger = "change";
+	static DefaultReducer = (signal) => {	// Handler is here as a reference in case it needs to be removed as a handler and will be bound to the Node in the constructor
+		if(signal.meta.isCoerced) {
+			// (Implicit data) Functionally, this occurs when a Signal was created ad hoc, and the original @args were condensed into an array and assigned to .data, thus unpackage
+			return signal.data[ 0 ];
+		}
+		
+			// (Explicit data) A Signal was explicitly created, so use w/e data was present in the Signal
+		return signal.data;
+	}
 
 	constructor({ id, state, mesh = [], config = {}, triggers = [], tags = [], namespace, components = [] } = {}) {
 		super(id, tags);
@@ -62,7 +59,7 @@ export class Node extends HiveBase {
 		 */
 
 		this._triggers = new Map(...triggers);
-		this._mesh = new Set(...mesh);
+		this._mesh = new Set(mesh);
 		this._config = {
 			isReducer: true,	// Make ALL triggers return a state -- to exclude a trigger from state, create a * handler that returns true on those triggers
 			allowRPC: true,		// If no trigger handlers exist AND an internal method is named equal to the trigger, pass ...args to that method
@@ -79,11 +76,6 @@ export class Node extends HiveBase {
 		
 		this.state = state;
 		this.components = components;
-
-		//? Default reducer that is only added if at least one (1) custom reducer has NOT been added
-		if(!this._triggers.has(Node.StateTrigger.Invoke)) {
-			this.addTrigger(Node.StateTrigger.Invoke, Node.StateTrigger.DefaultReducer.bind(this));
-		}
 	}
 
 	get state() {
@@ -303,12 +295,12 @@ export class Node extends HiveBase {
 				 * "state" handlers won't reduce, but could theoretically use
 				 * this._state directly, if needed
 				 */
-				if(this.config.isReducer === true && signal.type !== Node.StateTrigger.Notify) {
+				if(this.config.isReducer === true && signal.type !== Node.StateTrigger) {
 					let next;
 					// Execute all handlers before continuing
 
 					if(handlers.size === 0) {
-						next = Node.StateTrigger.DefaultReducer(...payload);
+						next = Node.DefaultReducer(...payload);
 					} else {
 						for(let handler of handlers) {
 							next = handler(...payload);
@@ -318,7 +310,7 @@ export class Node extends HiveBase {
 					const oldState = this._state;
 					this._state = next;
 
-					this.invoke(Node.StateTrigger.Notify, { current: next, previous: oldState });
+					this.invoke(Node.StateTrigger, { current: next, previous: oldState });
 				} else {
 					// Execute all handlers before continuing
 					for(let handler of handlers) {
@@ -394,17 +386,6 @@ export class Node extends HiveBase {
 			return this._handleInvocation(signal);
 		}
 	}
-	/**
-	 * If the ReducerTriggers Handler is still present, update will modify the state directly via the default function
-	 * If it is not present, this would act as a lazy way to invoke ReducerTriggers Invoke more easily
-	 * 
-	 * In either case, .update returns this and thus can be chained
-	 */
-	update(...reducerArgs) {
-		this.invoke(Node.StateTrigger.Invoke, ...reducerArgs);
-
-		return this;
-	}
 
 	/**
 	 * Process @qty amount of queued triggers
@@ -441,6 +422,12 @@ export class Node extends HiveBase {
 		return new Node(obj);
 	}
 	static Factory(qty = 1, fnOrObj) {
+		// Single-parameter override for .Spawning one (1) Node
+		if(typeof qty === "function" || typeof qty === "object") {
+			fnOrObj = qty;
+			qty = 1;
+		}
+
 		let nodes = [];
 		for(let i = 0; i < qty; i++) {
 			let node = Node.Create(typeof fnOrObj === "function" ? fnOrObj(i, qty) : fnOrObj);

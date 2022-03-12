@@ -4,7 +4,7 @@ export class HiveBase {
 
 	constructor(id, tags = []) {
 		this.id = id || uuid();
-		this.tags = new Set(...tags);
+		this.tags = new Set(tags);
 	}
 
 	deconstructor() {}

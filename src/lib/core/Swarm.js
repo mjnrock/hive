@@ -1,4 +1,4 @@
-import Brood from "./Brood";
+import HiveBase from "./HiveBase";
 import Signal from "./Signal";
 import Node from "./Node";
 
@@ -8,11 +8,11 @@ export const frozenKeys = [
 	`qualifier`,
 ];
 
-export class Swarm extends Brood {
+export class Swarm extends HiveBase {
 	static DefaultQualifier = () => true;
 
-	constructor(qualifier, { members = [] } = {}) {
-		super();
+	constructor(qualifier, { members = [], id, tags = [] } = {}) {
+		super(id, tags);
 		
 		// This is used to deteremine whether a Node is allowed to join the Swarm -- true allows a connection, false denies it
 		if(typeof qualifier === "function") {
@@ -59,6 +59,7 @@ export class Swarm extends Brood {
 		if(node instanceof Node && this.qualifier(node) === true) {
 			this.connexions.add(node);
 
+			// Return a "broadcast" function, that when invoked, invokes .receive on ALL members of the Swarm (thus is optionally captured)
 			return (...args) => this.emit.call(this, ...args);
 		}
 

@@ -10,6 +10,23 @@ export class Proposition {
         XOR: 1 << 2,
         IMPLICATION: 1 << 3,
     };
+	static TryFlags(...pairs) {
+		let ret = [];
+		for(let [ flag, boolOrFn ] of pairs) {
+			let result;
+			if(typeof boolOrFn === "function") {
+				result = boolOrFn();
+			} else {
+				result = !!boolOrFn;
+			}
+
+			if(result === true) {
+				ret.push(flag);
+			}
+		}
+
+		return ret;
+	}
 
     constructor(props = [], flags = []) {
         if(!Array.isArray(props)) {
@@ -216,6 +233,13 @@ export class Proposition {
         return new Proposition(false, [
             Proposition.EnumFlags.NOT,
         ]);
+    }
+
+    static New(props, flags) {
+        return new Proposition(props, flags);
+    }
+    static Test(props, flags, ...args) {
+        return Proposition.New(props, flags).test(...args);
     }
 
     static OR(...props) {

@@ -1,6 +1,6 @@
 import { validate } from "uuid";
 
-import HiveBase from "./HiveBase";
+import Proposition from "./../util/logic/Proposition";
 import Node from "./Node";
 
 /**
@@ -40,16 +40,34 @@ export class Nexus extends Node {
 		
 		return Nexus.$.registry.get(nodeOrId);
 	}
+	static $match(tags = [], { map, isAnd = false, isNot = false } = {}) {
+		let nodes = [];
+		for(let [ node ] of Nexus.$.registry.values()) {
+			for(let tag of tags) {
+				if(Proposition.Test(
+					() => node.tags.has(tag),
+					Proposition.TryFlags(
+						[ Proposition.EnumFlags.AND, isAnd ],
+						[ Proposition.EnumFlags.NOT, isNot ],
+					)
+				)) {
+					nodes.push(node);
+
+					break;
+				}
+			}
+		}
+
+		if(typeof map === "function") {
+			return nodes.map((node, i) => map(node, i));
+		}
+
+		return nodes;
+	}
 
 	deconstructor() {}
 
 	static Spawn(qty = 1, fnOrObj) {
-		// Single-parameter override for .Spawning one (1) Node
-		if(typeof qty === "function" || qty === fnOrObj) {
-			fnOrObj = qty;
-			qty = 1;
-		}
-
 		// Create @qty amount of Nodes
 		let results = Node.Factory(qty, fnOrObj);
 
@@ -60,6 +78,10 @@ export class Nexus extends Node {
 		// Register each @node with the Nexus Registry
 		for(let node of results) {
 			Nexus.$.registry.set(node.id, [ node ]);
+		}
+
+		if(results.length === 1) {
+			return results[ 0 ];
 		}
 
 		return results;
