@@ -1,25 +1,48 @@
 import { v4 as uuid } from "uuid";
+import Message from "./comm/Message";
 
 export class Agent {	
-	constructor({ state = {}, triggers = [], config, namespace, id, globals = {} } = {}) {
-		this.id = id || uuid();
+	constructor(...args) {
+		let [ agent = {} ] = args;
+		if(agent instanceof Agent) {
+			// Proxy-flash property access to eager @agent
+			return new Proxy(this, {
+				get: (target, prop) => {
+					if(Reflect.has(agent, prop)) {
+						return Reflect.get(agent, prop);
+					}
 
+					return Reflect.get(target, prop);
+				},
+				set: (target, prop, value) => {
+					if(Reflect.has(agent, prop)) {
+						return Reflect.set(agent, prop, value);
+					}
+
+					return Reflect.set(target, prop, value);
+				},
+			});
+		}
+
+		const { state = {}, triggers = [], config, namespace, id, globals = {} } = agent;
+
+		this.id = id || uuid();
 		this.state = state;
 		this.triggers = new Map(triggers);
-
 		this.config = {
+			//*	Reducer config
 			isReducer: true,	// Make ALL triggers return a state -- to exclude a trigger from state, create a * handler that returns true on those triggers
 			allowRPC: true,		// If no trigger handlers exist AND an internal method is named equal to the trigger, pass ...args to that method
-
+			//* Batching config
 			queue: new Set(),
 			isBatchProcessing: false,
 			maxBatchSize: 1000,
-
+			//* Trigger config
 			notifyTrigger: "@update",
 			dispatchTrigger: "@dispatch",
-
 			namespace,
-
+			
+			//* Global context object
 			//? These will be added to all @payloads
 			globals: {
 				...globals,
@@ -227,6 +250,14 @@ export class Agent {
 
 		return true;
 	}
+	__handleMessage(msg) {
+		const [ trigger ] = [ ...msg.tags ];
+		const lockedMessage = msg.copy(true);
+
+		lockedMessage.config.isLocked = true;
+
+		return this.__handleInvocation(trigger, lockedMessage);
+	}
 
 	/**
 	 * If in batch mode, add trigger to queue; else,
@@ -237,6 +268,18 @@ export class Agent {
 	 * data args and a Signal will be created
 	 */
 	invoke(trigger, ...args) {
+		if(trigger instanceof Message) {
+			let msg = trigger;
+	
+			if(this.config.isBatchProcessing === true) {
+				this.config.queue.add(msg);
+	
+				return true;
+			} else {
+				return this.__handleMessage(msg);
+			}
+		}
+
 		/**
 		 * Short-circuit the invocation if the trigger has not been loaded
 		 */
