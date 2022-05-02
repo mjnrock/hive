@@ -1,46 +1,41 @@
 import { v4 as uuid } from "uuid";
 import Message from "./comm/Message";
 
-export class Agent {	
-	constructor(...args) {
-		let [ agent = {} ] = args;
-		if(agent instanceof Agent) {
-			// Proxy-flash property access to eager @agent
-			return new Proxy(this, {
-				get: (target, prop) => {
-					if(Reflect.has(agent, prop)) {
-						return Reflect.get(agent, prop);
-					}
+export class Agent {
+	//? Allow for universal values to invoke short-circuits in the proxy traps (e.g. prevent update, change accessor return value, etc.)
+	static Hooks = {
+		Abort: "74c80a9c-46c5-49c3-9c9b-2946885ee733",		// If set hook returns this, prevent the update
+	};
 
-					return Reflect.get(target, prop);
-				},
-				set: (target, prop, value) => {
-					if(Reflect.has(agent, prop)) {
-						return Reflect.set(agent, prop, value);
-					}
-
-					return Reflect.set(target, prop, value);
-				},
-			});
-		}
-
-		const { state = {}, triggers = [], config, namespace, id, globals = {} } = agent;
-
+	constructor({ state = {}, triggers = [], config, namespace, id, globals = {}, hooks = {} } = {}) {
 		this.id = id || uuid();
 		this.state = state;
 		this.triggers = new Map(triggers);
 		this.config = {
+			//* Agent config
+			//? These are proxy hooks that affect how the Agent behaves, in general (e.g. Accessor hook to return value from an API)
+			hooks: {
+				get: new Set(),			// Accessor hook
+				pre: new Set(),			// Pre-set hook
+				post: new Set(),		// Post-set hook
+				delete: new Set(),		// Post-delete hook
+
+				...hooks,				// Seed object
+			},
+
 			//*	Reducer config
-			isReducer: true,	// Make ALL triggers return a state -- to exclude a trigger from state, create a * handler that returns true on those triggers
-			allowRPC: true,		// If no trigger handlers exist AND an internal method is named equal to the trigger, pass ...args to that method
+			isReducer: true,			// Make ALL triggers return a state -- to exclude a trigger from state, create a * handler that returns true on those triggers
+			allowRPC: true,				// If no trigger handlers exist AND an internal method is named equal to the trigger, pass ...args to that method
+			
 			//* Batching config
 			queue: new Set(),
 			isBatchProcessing: false,
 			maxBatchSize: 1000,
+
 			//* Trigger config
+			namespace,
 			notifyTrigger: "@update",
 			dispatchTrigger: "@dispatch",
-			namespace,
 			
 			//* Global context object
 			//? These will be added to all @payloads
@@ -48,8 +43,58 @@ export class Agent {
 				...globals,
 			},
 
-			...config,
+			...config,					// Seed object
 		};
+
+		return new Proxy(this, {
+			get: (target, prop) => {
+				let value = Reflect.get(target, prop);
+				for(let fn of target.config.hooks.get) {
+					value = fn(target, prop, value);
+
+					// Short-circuit execution and return substitute value
+					if(value !== void 0) {
+						return value;
+					}
+				}
+
+				return value;
+			},
+			set: (target, prop, value) => {
+				let newValue = value;
+				for(let fn of target.config.hooks.pre) {
+					newValue = fn(target, prop, value);
+
+					if(newValue === Agent.Hooks.Abort) {
+						return Agent.Hooks.Abort;
+					}
+				}
+				
+				const returnVal = Reflect.set(target, prop, newValue);
+
+				for(let fn of target.config.hooks.post) {
+					newValue = fn(target, prop, value);
+				}
+
+				return returnVal;
+			},
+			deleteProperty: (target, prop) => {
+				let shouldDelete = true;
+				for(let fn of target.config.hooks.delete) {
+					shouldDelete = fn(target, prop, shouldDelete);
+
+					if(shouldDelete === Agent.Hooks.Abort) {
+						return Agent.Hooks.Abort;
+					}
+				}
+
+				if(!!shouldDelete) {
+					return Reflect.deleteProperty(target, prop);
+				}
+
+				return false;
+			},
+		});
 	}
 
 	deconstructor() {}
